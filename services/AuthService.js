@@ -12,8 +12,11 @@ const login = async (email, password) => {
       headers: { "c-basic-auth": getBasicToken(email, password) },
     };
     const response = await fetch(API_URL + "/auth", config);
+    console.log("dentro de login")
+    console.log(response.status)
+    console.log(response.text)
     const body = await response.json();
-    console.log(response.headers);
+    console.log(body)
     return [response.headers.map["c-api-key"], body.user];
   } catch (error) {
     console.log(error);

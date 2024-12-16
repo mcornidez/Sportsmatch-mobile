@@ -34,6 +34,7 @@ const Home = ({ navigation, route }) => {
   useEffect(() => {
     setLoading(true);
     const getNearEvents = async () => {
+      console.log(currUser)
       const mockData = await fetchNearEvents(currUser.id, JSON.parse(route.params?.filters));
       setEventsList(mockData.items);
       setFilteredEventList(mockData.items);

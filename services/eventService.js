@@ -1,8 +1,7 @@
 import { EVENT_STATUS, EXPERTISE } from "../constants/data";
 import * as SecureStore from "expo-secure-store";
 
-export const API_URL =
-  "http://sportsmatch-lb-700737557.us-east-1.elb.amazonaws.com";
+export const API_URL = "http://192.168.0.67:8080";
 
 export const authenticatedFetch = async (url, options = {}) => {
   try {

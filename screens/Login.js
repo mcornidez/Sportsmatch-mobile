@@ -27,6 +27,7 @@ const Login = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
+      console.log("aca")
       await authContext.signIn(data)
     }
     catch (err) {

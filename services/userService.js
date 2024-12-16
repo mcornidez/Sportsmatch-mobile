@@ -1,8 +1,7 @@
 import { authenticatedFetch } from "./eventService";
 import { Buffer } from "@craftzdog/react-native-buffer";
 
-export const API_URL =
-  "http://sportsmatch-lb-700737557.us-east-1.elb.amazonaws.com";
+export const API_URL = "http://192.168.0.67:8080";
 
 export const updateUser = async (userId, userData) => {
   const response = await authenticatedFetch("/users/" + userId, {
@@ -40,7 +39,7 @@ export const updateUserImage = async (userId, base64Img) => {
     }
   };
 
-  const response = await fetch(presignedUrl.presignedPutUrl, requestOptions);
+  const response = await fetch("https://cdn-icons-png.freepik.com/256/1077/1077114.png?semt=ais_hybrid", requestOptions);
 
   return {
     status: response.status,
@@ -51,36 +50,36 @@ export const updateUserImage = async (userId, base64Img) => {
 };
 
 export const fetchUserImage = async (userId) => {
-  const res = await authenticatedFetch("/users/" + userId + "/image", {
-    method: "GET",
-  });
+  // const res = await authenticatedFetch("/users/" + userId + "/image", {
+  //   method: "GET",
+  // });
 
-  if (!res.ok) {
-    return {
-      status: res.status,
-      message: "Failed to fetch user image",
-    };
-  }
+  // if (!res.ok) {
+  //   return {
+  //     status: res.status,
+  //     message: "Failed to fetch user image",
+  //   };
+  // }
 
-  const presignedUrl = await res.json();
+  // const presignedUrl = await res.json();
 
-  var requestOptions = {
-    method: "GET",
-  };
+  // var requestOptions = {
+  //   method: "GET",
+  // };
 
-  const response = await fetch(presignedUrl.presignedGetUrl, requestOptions);
+  // const response = await fetch("https://cdn-icons-png.freepik.com/256/1077/1077114.png?semt=ais_hybrid", requestOptions);
 
-  if (response.ok) {
-    const data = await response.text();
+  // if (response.ok) {
+  //   const data = await response.text();
 
-    return {
-      status: response.status,
-      imageURL: data ? `data:image/png;base64,${data}` : null,
-    };
-  }
+  //   return {
+  //     status: response.status,
+  //     imageURL: data ? `data:image/png;base64,${data}` : null,
+  //   };
+  // }
 
-  return {
-    status: response.status,
-    message: "Failed to fetch user image",
-  };
+  // return {
+  //   status: response.status,
+  //   message: "Failed to fetch user image",
+  // };
 };

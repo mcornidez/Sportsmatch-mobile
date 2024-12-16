@@ -7,12 +7,13 @@ import Tabs from "./navigation/Tabs";
 import { Login, Register, ConfirmSignUp } from "./screens";
 import { useAuthContext, AuthContext } from "./contexts/authContext";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-import { getCurrUserJWT } from "./services/LocalStorageService";
+import { getCurrUserJWT, clearUserData } from "./services/LocalStorageService";
 import { COLORS } from "./constants";
 
 const Stack = createStackNavigator();
 
 const App = () => {
+
   const authContext = useAuthContext();
 
   useEffect(() => {
