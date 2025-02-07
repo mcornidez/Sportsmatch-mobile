@@ -4,16 +4,16 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useFonts } from "expo-font";
 import Tabs from "./navigation/Tabs";
-import { Login, Register, ConfirmSignUp } from "./screens";
+import { Login, Register, ConfirmSignUp, NewPayment } from "./screens";
 import { useAuthContext, AuthContext } from "./contexts/authContext";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { getCurrUserJWT, clearUserData } from "./services/LocalStorageService";
 import { COLORS } from "./constants";
 
+
 const Stack = createStackNavigator();
 
 const App = () => {
-
   const authContext = useAuthContext();
 
   useEffect(() => {
@@ -56,6 +56,7 @@ const App = () => {
                 <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen name="ConfirmSignUp" component={ConfirmSignUp} />
+                <Stack.Screen name="NewPayment" component={NewPayment} />
               </>
             )}
           </Stack.Navigator>
