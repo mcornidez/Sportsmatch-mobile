@@ -1,7 +1,6 @@
 import { EVENT_STATUS, EXPERTISE } from "../constants/data";
 import * as SecureStore from "expo-secure-store";
-
-export const API_URL = "http://192.168.0.67:8080";
+import { API_URL } from '@env';
 
 export const authenticatedFetch = async (url, options = {}) => {
   try {

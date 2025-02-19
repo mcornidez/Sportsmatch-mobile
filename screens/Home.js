@@ -1,3 +1,4 @@
+
 import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,26 +11,31 @@ import Card from "../components/Card";
 import Pill from "../components/Pill";
 import { fetchNearEvents } from "../services/eventService";
 import { COLORS } from "../constants";
-import { SPORT } from "../constants/data";
 import { StyleSheet } from "react-native";
 import { NoContentMessage } from "../components/NoContentMessage";
 import { UserContext } from "../contexts/UserContext";
-
-const filterData = [
-  { key: 1, sportId: 1, sport: SPORT[0] },
-  { key: 2, sportId: 2, sport: SPORT[1] },
-  { key: 3, sportId: 3, sport: SPORT[2] },
-  { key: 4, sportId: 4, sport: SPORT[3] },
-  { key: 5, sportId: 5, sport: SPORT[4] },
-  { key: 6, sportId: 6, sport: SPORT[5]}
-];
+import {getSports} from "../services/sportService";
 
 const Home = ({ navigation, route }) => {
-  const [eventsList, setEventsList] = useState(null);
-  const [filteredEventsList, setFilteredEventList] = useState(null);
+  const [eventsList, setEventsList] = useState([]);
+  const [filteredEventsList, setFilteredEventList] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [sports, setSports] = useState([]);
   const {currUser} = useContext(UserContext);
+
+  useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        const sportsData = await getSports();
+        setSports(sportsData);
+      } catch (error) {
+        console.error("Error loading sports:", error);
+      }
+    };
+
+    fetchSports();
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -61,36 +67,35 @@ const Home = ({ navigation, route }) => {
   };
 
   const renderItemPill = ({ item }) => {
-    item.title = item.sport;
+    item.title = item.name;
     return (
-      <Pill
-        props={item}
-        handlePress={handleFilter}
-        currentFilter={selectedFilter}
-      />
+        <Pill
+            props={item}
+            handlePress={handleFilter}
+            currentFilter={selectedFilter}
+        />
     );
   };
 
   const renderEmptyList = () => {
     return (
-    <>
-        <NoContentMessage message="No hay eventos disponibles en este momento."/>
-        <View style={{height: 40}}/>
-    </>
+        <>
+          <NoContentMessage message="No hay eventos disponibles en este momento."/>
+          <View style={{height: 40}}/>
+        </>
     );
   };
 
   const handleFilter = (sport) => {
     setLoading(true);
 
-    if (selectedFilter == sport) {
+    if (selectedFilter === sport) {
       setSelectedFilter("");
       setFilteredEventList(eventsList);
 
     } else {
       setSelectedFilter(sport);
-      //TODO: FIX this should be done in the backend
-      const filteredList  = eventsList?.filter((e) => SPORT[e.sportId - 1] == sport);
+      const filteredList = eventsList?.filter((e) => e.sportId === sport.id);
       setFilteredEventList(filteredList);
     }
     setLoading(false);
@@ -111,40 +116,40 @@ const Home = ({ navigation, route }) => {
   };
 
   return (
-        <SafeAreaView style={{ flex: 1, minHeight: "100%"}}>
-      <FlatList
-        data={filterData}
-        renderItem={renderItemPill}
-        keyExtractor={(item) => {
-          return item.key.toString();
-        }}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ flex: 1, paddingTop: 20, paddingBottom: 10, maxHeight: 70 }}
-      />
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={COLORS.primary}
-          style={{ alignSelf: "center", marginTop: '70%' }}
-        />
-      ) : (
+      <SafeAreaView style={{ flex: 1, minHeight: "100%"}}>
         <FlatList
-          data={filteredEventsList}
-          renderItem={renderItem}
-          refreshControl={
-            <RefreshControl tintColor={COLORS.primary} refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          style={{flex: 1}}
-          contentContainerStyle={filteredEventsList?.length == 0 ?  [styles.noContentContainer, {paddingHorizontal: 24}] : styles.contentContainer}
-          keyExtractor={(item) => {
-            return item.id.toString();
-          }}
-          ListEmptyComponent={renderEmptyList}
-        ></FlatList>
-      )}
-    </SafeAreaView>
-      );
+            data={sports}
+            renderItem={renderItemPill}
+            keyExtractor={(item) => {
+              return item.id.toString();
+            }}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ flex: 1, paddingTop: 20, paddingBottom: 10, maxHeight: 70 }}
+        />
+        {loading ? (
+            <ActivityIndicator
+                size="large"
+                color={COLORS.primary}
+                style={{ alignSelf: "center", marginTop: '70%' }}
+            />
+        ) : (
+            <FlatList
+                data={filteredEventsList}
+                renderItem={renderItem}
+                refreshControl={
+                  <RefreshControl tintColor={COLORS.primary} refreshing={refreshing} onRefresh={onRefresh} />
+                }
+                style={{flex: 1}}
+                contentContainerStyle={filteredEventsList?.length === 0 ?  [styles.noContentContainer, {paddingHorizontal: 24}] : styles.contentContainer}
+                keyExtractor={(item) => {
+                  return item.id.toString();
+                }}
+                ListEmptyComponent={renderEmptyList}
+            ></FlatList>
+        )}
+      </SafeAreaView>
+  );
 };
 
 export default Home;
@@ -165,3 +170,4 @@ const styles = StyleSheet.create({
     paddingBottom: '5%'
   }
 });
+

@@ -1,7 +1,7 @@
+
 import { authenticatedFetch } from "./eventService";
 import { Buffer } from "@craftzdog/react-native-buffer";
-
-export const API_URL = "http://192.168.0.67:8080";
+import { API_URL } from '@env';
 
 export const updateUser = async (userId, userData) => {
   const response = await authenticatedFetch("/users/" + userId, {
@@ -28,7 +28,7 @@ export const updateUserImage = async (userId, base64Img) => {
   }
 
   const presignedUrl = await res.json();
-  
+
   var buffer = Buffer.from(base64Img);
 
   var requestOptions = {
@@ -44,9 +44,31 @@ export const updateUserImage = async (userId, base64Img) => {
   return {
     status: response.status,
     message: response.ok
-      ? "Image update successful"
-      : "Failed to upload user image",
+        ? "Image update successful"
+        : "Failed to upload user image",
   };
+};
+
+export const updatePhoneNumber = async (userId, phoneNumber, token) => {
+  try {
+    const response = await fetch(`${API_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'c-api-key': token,
+      },
+      body: JSON.stringify({ phoneNumber }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to update phone number:", error);
+    throw error;
+  }
 };
 
 export const fetchUserImage = async (userId) => {
@@ -83,3 +105,4 @@ export const fetchUserImage = async (userId) => {
   //   message: "Failed to fetch user image",
   // };
 };
+

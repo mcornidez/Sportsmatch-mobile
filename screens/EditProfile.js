@@ -1,5 +1,8 @@
+
 import { useForm, Controller } from "react-hook-form";
 import CustomButton from "../components/CustomButton";
+import { getSports } from "../services/sportService";
+import { updatePhoneNumber } from "../services/userService";
 import {
   SafeAreaView,
   View,
@@ -15,7 +18,7 @@ import { useState, useEffect, useContext } from "react";
 import { COLORS, FONTS } from "../constants";
 import { useNavigation } from "@react-navigation/native";
 import Pill from "../components/Pill";
-import { LOCATIONS, SPORT } from "../constants/data";
+import { LOCATIONS } from "../constants/data";
 import { updateUser, updateUserImage } from "../services/userService";
 import * as ImagePicker from "expo-image-picker";
 import DefaultProfile from "../assets/default-profile.png";
@@ -27,21 +30,13 @@ import { PhoneNumberUtil } from "google-libphonenumber";
 import { UserContext } from "../contexts/UserContext";
 import { CustomMultiDropdown } from "../components/CustomMultiDropdown";
 
-const sports = [
-  { key: 1, sportId: 1, title: SPORT[0] },
-  { key: 2, sportId: 2, title: SPORT[1] },
-  { key: 3, sportId: 3, title: SPORT[2] },
-  { key: 4, sportId: 4, title: SPORT[3] },
-  { key: 5, sportId: 5, title: SPORT[4] },
-  { key: 6, sportId: 6, title: SPORT[5] },
-];
-
 const EditProfile = () => {
   const navigator = useNavigation();
 
   const [selectedSports, setSelectedSports] = useState([]);
   const { currUser, setCurrUser } = useContext(UserContext);
   const [currImg, setCurrImg] = useState({ uri: currUser.imageURL });
+  const [sports, setSports] = useState([]);
   const {
     control,
     handleSubmit,
@@ -66,8 +61,8 @@ const EditProfile = () => {
     const parsedNumber = phoneUtil.parse(phone, "");
     const code = phoneUtil.getRegionCodeForNumber(parsedNumber);
     const national_number = phoneUtil
-      .parseAndKeepRawInput(phone, code)
-      .getNationalNumber();
+        .parseAndKeepRawInput(phone, code)
+        .getNationalNumber();
     return {
       code: code,
       national_number: national_number.toString(),
@@ -75,6 +70,17 @@ const EditProfile = () => {
   };
 
   useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        const sportsData = await getSports();
+        setSports(sportsData);
+      } catch (error) {
+        console.error("Error loading sports:", error);
+      }
+    };
+
+    fetchSports();
+
     const { code, national_number } = parsePhoneNumber(currUser.phoneNumber);
     setCurrUser({
       ...currUser,
@@ -89,15 +95,15 @@ const EditProfile = () => {
   const validatePhone = (phone) => {
     const { code, national_number } = parsePhoneNumber(phone);
     return phoneUtil.isValidNumberForRegion(
-      phoneUtil.parse(national_number, code),
-      code
+        phoneUtil.parse(national_number, code),
+        code
     );
   };
 
   const handleSportsSelect = (sport) => {
     if (selectedSports.includes(sport.sportId)) {
       setSelectedSports(
-        selectedSports.filter((item) => item !== sport.sportId)
+          selectedSports.filter((item) => item !== sport.sportId)
       );
     } else {
       setSelectedSports([...selectedSports, sport.sportId]);
@@ -109,7 +115,7 @@ const EditProfile = () => {
   };
 
   const dataChanged = (data) => {
-    const phoneChanged = data.phone !== currUser.phoneNumber;
+    const phoneChanged = data.phonenumber !== currUser.phoneNumber;
     const sportsChanged = currUser.sports !== selectedSports;
     const locChanged = currUser.locations !== selectedLocations;
 
@@ -119,40 +125,34 @@ const EditProfile = () => {
   const submit = async (data) => {
     setSubmitLoading(true);
     setPhoneConflictError(null);
-    console.log("DATA: ", data);
-    const formData = {
-      phoneNumber: data.phonenumber,
-      locations: data.locations,
-      sports: selectedSports,
-    };
 
-    var userUpdatedRes;
-    if (dataChanged) {
-      userUpdatedRes = await updateUser(currUser.id, formData);
-    }
-    if (userUpdatedRes && userUpdatedRes.failed) {
-      if (userUpdatedRes.internalStatus === "CONFLICT") {
-        setPhoneConflictError("Este número ya fue registrado.");
-      } else {
-        setError(userUpdatedRes.message);
+    try {
+      const token = currUser.token;
+
+      if (dataChanged(data)) {
+        await updatePhoneNumber(currUser.id, data.phonenumber, token);
       }
+
+      if (imageChanged) {
+        const imgUpdatedRes = await updateUserImage(currUser.id, currImg.base64);
+        if (imgUpdatedRes.status === 200) {
+          currUser.imageURL = currImg.uri;
+          navigator.navigate("MyProfile");
+        } else {
+          setError(imgUpdatedRes.message);
+          setSubmitLoading(false);
+          return;
+        }
+      }
+
+      setCurrUser({ ...currUser, phoneNumber: data.phonenumber });
+      navigator.navigate("MyProfile");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setError("Failed to update profile.");
+    } finally {
       setSubmitLoading(false);
-      return;
     }
-    if (imageChanged) {
-      const imgUpdatedRes = await updateUserImage(currUser.id, currImg.base64);
-      if (imgUpdatedRes.status == 200) {
-        currUser.imageURL = currImg.uri;
-        navigator.navigate("MyProfile");
-      } else {
-        setError(imgUpdatedRes.message);
-        setSubmitLoading(false);
-        return;
-      }
-    }
-    setCurrUser({ ...currUser, ...formData });
-    setSubmitLoading(false);
-    navigator.navigate("MyProfile");
   };
 
   const editProfileImage = () => {
@@ -163,23 +163,23 @@ const EditProfile = () => {
     const title = "Selccionar foto";
 
     showActionSheetWithOptions(
-      {
-        options,
-        title,
-        libraryIndex,
-        cameraIndex,
-        cancelButtonIndex,
-      },
-      (selectedIndex) => {
-        switch (selectedIndex) {
-          case libraryIndex:
-            handleLibraryLaunch();
-            break;
-          case cameraIndex:
-            handleCameraLaunch();
-            break;
+        {
+          options,
+          title,
+          libraryIndex,
+          cameraIndex,
+          cancelButtonIndex,
+        },
+        (selectedIndex) => {
+          switch (selectedIndex) {
+            case libraryIndex:
+              handleLibraryLaunch();
+              break;
+            case cameraIndex:
+              handleCameraLaunch();
+              break;
+          }
         }
-      }
     );
   };
 
@@ -220,40 +220,40 @@ const EditProfile = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        {loading ? (
-          <ActivityIndicator
-            size="large"
-            color={COLORS.primary}
-            style={{ marginTop: "75%" }}
-          />
-        ) : (
-          <View style={styles.scrollContainer}>
-            <Avatar
-              size={130}
-              rounded
-              source={currImg?.uri ? { uri: currImg.uri } : DefaultProfile}
-            >
-              <TouchableOpacity onPress={editProfileImage}>
-                <Ionicons
-                  name="ios-camera"
-                  size={25}
-                  style={{
-                    position: "absolute",
-                    color: COLORS.primary,
-                    bottom: 0,
-                    right: 0,
-                  }}
+          <KeyboardAvoidingView
+              style={{ flex: 1 }}
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            {loading ? (
+                <ActivityIndicator
+                    size="large"
+                    color={COLORS.primary}
+                    style={{ marginTop: "75%" }}
                 />
-              </TouchableOpacity>
-            </Avatar>
-            {/* <View style={styles.inputContainer}>
+            ) : (
+                <View style={styles.scrollContainer}>
+                  <Avatar
+                      size={130}
+                      rounded
+                      source={currImg?.uri ? { uri: currImg.uri } : DefaultProfile}
+                  >
+                    <TouchableOpacity onPress={editProfileImage}>
+                      <Ionicons
+                          name="ios-camera"
+                          size={25}
+                          style={{
+                            position: "absolute",
+                            color: COLORS.primary,
+                            bottom: 0,
+                            right: 0,
+                          }}
+                      />
+                    </TouchableOpacity>
+                  </Avatar>
+                  {/* <View style={styles.inputContainer}>
                 <Text style={styles.inputText}>Nombre</Text>
                 <Controller
                   control={control}
@@ -328,88 +328,88 @@ const EditProfile = () => {
                   Por favor ingrese un email válido
                 </Text>
               )} */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputText}>Número de teléfono</Text>
-              <Controller
-                control={control}
-                rules={{
-                  required: true,
-                  validate: (phone) => {
-                    return validatePhone(phone);
-                  },
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <PhoneInput
-                    defaultValue={currUser.national_number}
-                    defaultCode={currUser.country_code}
-                    layout="first"
-                    containerStyle={styles.phoneContainer}
-                    textContainerStyle={styles.phoneContainer.input}
-                    flagButtonStyle={styles.phoneContainer.flag}
-                    onChangeFormattedText={(text) => {
-                      onChange(text);
-                    }}
-                  />
-                )}
-                name="phonenumber"
-              />
-            </View>
-            {<Text style={styles.error}>{phoneConflictError}</Text>}
-            {errors.phonenumber && (
-              <Text style={styles.error}>
-                Por favor ingrese un número válido.
-              </Text>
-            )}
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputText}>Mis Deportes</Text>
-              <View style={styles.sportsContainer}>
-                {sports.map((sport, index) => {
-                  return (
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputText}>Número de teléfono</Text>
                     <Controller
-                      key={index}
-                      control={control}
-                      render={() => (
-                        <Pill
-                          customStyle={styles.pillStyle}
-                          props={sport}
-                          handlePress={() => handleSportsSelect(sport)}
-                          currentFilter={isSelected(sport)}
-                        />
-                      )}
-                      name={`sports[${index}]`}
-                      defaultValue={false}
+                        control={control}
+                        rules={{
+                          required: true,
+                          validate: (phone) => {
+                            return validatePhone(phone);
+                          },
+                        }}
+                        render={({ field: { onChange, onBlur, value } }) => (
+                            <PhoneInput
+                                defaultValue={currUser.national_number}
+                                defaultCode={currUser.country_code}
+                                layout="first"
+                                containerStyle={styles.phoneContainer}
+                                textContainerStyle={styles.phoneContainer.input}
+                                flagButtonStyle={styles.phoneContainer.flag}
+                                onChangeFormattedText={(text) => {
+                                  onChange(text);
+                                }}
+                            />
+                        )}
+                        name="phonenumber"
                     />
-                  );
-                })}
-              </View>
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputText}>Mis Ubicaciones</Text>
-              <Controller
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <CustomMultiDropdown
-                    data={LOCATIONS}
-                    onChangeItem={onChange}
-                    defaultValues={currUser.locations}
+                  </View>
+                  {<Text style={styles.error}>{phoneConflictError}</Text>}
+                  {errors.phonenumber && (
+                      <Text style={styles.error}>
+                        Por favor ingrese un número válido.
+                      </Text>
+                  )}
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputText}>Mis Deportes</Text>
+                    <View style={styles.sportsContainer}>
+                      {sports.map((sport, index) => {
+                        return (
+                            <Controller
+                                key={sport.id}
+                                control={control}
+                                render={() => (
+                                    <Pill
+                                        customStyle={styles.pillStyle}
+                                        props={{ title: sport.name }}
+                                        handlePress={() => handleSportsSelect(sport)}
+                                        currentFilter={isSelected(sport)}
+                                    />
+                                )}
+                                name={`sports[${sport.name}]`}
+                                defaultValue={false}
+                            />
+                        );
+                      })}
+                    </View>
+                  </View>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputText}>Mis Ubicaciones</Text>
+                    <Controller
+                        control={control}
+                        render={({ field: { onChange, value } }) => (
+                            <CustomMultiDropdown
+                                data={LOCATIONS}
+                                onChangeItem={onChange}
+                                defaultValues={currUser.locations}
+                            />
+                        )}
+                        name="locations"
+                    />
+                  </View>
+                  {error && (
+                      <Text style={{ color: "red", paddingTop: 15 }}>{error}</Text>
+                  )}
+                  <CustomButton
+                      title="Guardar"
+                      onPress={handleSubmit(submit)}
+                      isLoading={submitLoading}
                   />
-                )}
-                name="locations"
-              />
-            </View>
-            {error && (
-              <Text style={{ color: "red", paddingTop: 15 }}>{error}</Text>
+                </View>
             )}
-            <CustomButton
-              title="Guardar"
-              onPress={handleSubmit(submit)}
-              isLoading={submitLoading}
-            />
-          </View>
-        )}
-      </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
   );
 };
 
@@ -503,3 +503,4 @@ const styles = StyleSheet.create({
 });
 
 export default EditProfile;
+
