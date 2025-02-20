@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import {Ionicons} from '@expo/vector-icons';
 import { COLORS } from '../constants';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { NewEvent, Home, Event } from '../screens';
@@ -20,11 +20,19 @@ const HomeStackNavigator = () => {
                     options={{
                         headerRight: () => {
                             return (
-                                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch', gap: 8}}>
-                                    <Ionicons name='options' size={24} color={COLORS.white} onPress={() => {
-                                        navigator.navigate("Filtros")
-                                    }} />
-                                    <Ionicons name='add' size={30} color={COLORS.white} onPress={() => navigator.navigate("Nuevo Evento")} />
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <Ionicons
+                                        name='options'
+                                        size={24}
+                                        color={COLORS.white}
+                                        onPress={() => navigator.navigate("Filtros")}
+                                    />
+                                    <Ionicons
+                                        name='add'
+                                        size={30}
+                                        color={COLORS.white}
+                                        onPress={() => navigator.navigate("Nuevo Evento")}
+                                    />
                                 </View>
                             )
                         }
