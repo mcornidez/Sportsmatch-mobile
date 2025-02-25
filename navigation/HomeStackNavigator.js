@@ -7,6 +7,7 @@ import { TouchableOpacity, View } from 'react-native';
 import FilterModal from '../screens/Filters';
 import SearchFields from "../screens/SearchFields";
 import NewEvent from "../screens/NewEvent";
+import FieldReservation from "../screens/FieldReservation";
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +37,7 @@ const HomeStackNavigator = ({ navigation }) => {
             <Stack.Screen name="Evento" component={Event} />
             <Stack.Screen name="Buscar Canchas" component={SearchFields} />
             <Stack.Screen name="Nuevo Evento" component={NewEvent} />
+            <Stack.Screen name="Reserva Cancha" component={FieldReservation} />
 
             {/* Modales */}
             <Stack.Group screenOptions={{ presentation: 'fullScreenModal', headerShown: false }}>

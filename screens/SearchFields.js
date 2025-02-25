@@ -136,7 +136,21 @@ const SearchFields = () => {
                 styles.card,
                 selectedField === item.id ? styles.selectedCard : {}
             ]}
-            onPress={() => setSelectedField(item.id)}
+            onPress={() =>
+                navigation.navigate("Reserva Cancha", {
+                    eventId: eventId, // 👈 Asegurar que tenga un valor válido
+                    fieldId: item.id,
+                    slotId: item.slotId,
+                    clubName: item.clubName,
+                    fieldName: item.name,
+                    date,
+                    slotStart: item.slotStart,
+                    slotDuration: item.slotDuration,
+                    capacity: item.capacity,
+                    cost: item.cost,
+                    description: item.description,
+                })
+            }
         >
             {/* Sección superior con el nombre del club y la cancha */}
             <View style={styles.section}>

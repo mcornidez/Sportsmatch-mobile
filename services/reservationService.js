@@ -7,17 +7,17 @@ export const createReservation = async ({ eventId, fieldId, slotId }) => {
     if (!token) {
         throw new Error("No token found, user must log in.");
     }
+
     try {
-        const response = await fetch(`${API_URL}/reservations`, {
+        const response = await fetch(`${API_URL}/reservations/event/${eventId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "c-api-key": token,
             },
             body: JSON.stringify({
-                eventId,
                 fieldId,
-                slotId
+                slotIds: [slotId] // 👈 Asegurar que sea un array
             }),
         });
 
