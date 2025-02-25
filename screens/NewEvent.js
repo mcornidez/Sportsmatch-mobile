@@ -1,4 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { getSports } from "../services/sportService";
+import { Switch } from "react-native";
+
 import {
   Keyboard,
   StyleSheet,
@@ -47,9 +50,11 @@ const NewEvent = () => {
   const [customPlayerQty, setCustomPlayerQty] = React.useState("+");
   const eventDuration = ["60", "90", "120"];
   const playersQty = ["1", "2", "3", customPlayerQty];
+  const [sports, setSports] = useState([]);
+  const [isTimeOptional, setIsTimeOptional] = useState(false);
+
 
   const dateTimeToDate = (date, time) => {
-    //Months are 0 indexed
     return `${date.getFullYear()}-${
       date.getMonth() + 1
     }-${date.getDate()} ${time.getHours()}:${time
@@ -58,7 +63,20 @@ const NewEvent = () => {
       .padStart(2, "0")}`;
   };
 
-  const onSubmit = async (formData) => {
+  useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        const sportsData = await getSports();
+        setSports(sportsData);
+      } catch (error) {
+        console.error("Error loading sports:", error);
+      }
+    };
+
+    fetchSports();
+  }, []);
+
+  const onSubmit = async (formData, goToHome) => {
     const {
       sport,
       difficulty,
@@ -69,25 +87,59 @@ const NewEvent = () => {
       players,
       duration,
     } = formData;
-    // setIsLoading(!isLoading);
+
+    const selectedSport = sports.find((s) => s.name === sport);
+    const sportId = selectedSport ? selectedSport.id : null;
+
+    if (!sportId) {
+      console.error("❌ Error: No se encontró el ID del deporte seleccionado.");
+      return;
+    }
+
     const data = {
-      sportId: SPORT.indexOf(sport) + 1,
+      sportId: sportId,
       expertise: EXPERTISE.indexOf(difficulty) + 1,
       location: location,
       schedule: dateTimeToDate(date, time),
-      description: description ?? " ",
+      description: description || " ",
       remaining: +players,
       duration: +duration,
     };
+
     try {
       setIsLoading(true);
-      await publishEvent(data);
+
+      const response = await publishEvent(data);
+
+      if (!response || !response.eventId) {
+        console.error("❌ No se recibió eventId en la respuesta.");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(false);
-      navigation.goBack();
+
+      if (goToHome === true) {
+        navigation.navigate("Inicio");
+      } else {
+        navigation.navigate("Buscar Canchas", {
+          eventId: response.eventId,
+          sportId: data.sportId,
+          date: formatDate(formData.date),
+          time: formatTime(formData.time),
+          duration: formData.duration
+        });
+      }
+
+
+
     } catch (err) {
-      console.log(err);
+      console.error("❌ Error creando evento:", err);
+      setIsLoading(false);
     }
   };
+
+
 
   const renderErrors = () => {
     var errorMsg = "";
@@ -188,7 +240,7 @@ const NewEvent = () => {
                 <CustomDropdown
                   selected={field.value}
                   setSelected={field.onChange}
-                  data={SPORT}
+                  data={sports.map(sport => sport.name)}
                   name="Deporte"
                 />
               )}
@@ -223,67 +275,78 @@ const NewEvent = () => {
             name="location"
           />
         </View>
-        <View style={styles.dateSectionContainer}>
+        <View style={styles.dateTimeRowContainer}>
+          {/* Sección de Fecha */}
           <View style={styles.dateTimeLabelContainer}>
             <Text style={styles.label}>Fecha</Text>
             <Controller
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => {
-                if (field.value === undefined) field.value = new Date();
-                return Platform.OS !== "ios" ? (
-                  <TouchableOpacity
-                    onPress={() => showDatepicker(field)}
-                    style={styles.dateTimeContainer}
-                  >
-                    <Text style={{ textAlign: "center" }}>
-                      {formatDate(field.value)}
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <RNDateTimePicker
-                    style={{ alignSelf: "center", minWidth: "40%" }}
-                    value={new Date(field.value)}
-                    mode="date"
-                    onChange={(event, selecteDate) =>
-                      field.onChange(selecteDate)
-                    }
-                    minimumDate={new Date()}
-                  />
-                );
-              }}
-              name="date"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => {
+                  if (field.value === undefined) field.value = new Date();
+                  return Platform.OS !== "ios" ? (
+                      <TouchableOpacity
+                          onPress={() => showDatepicker(field)}
+                          style={styles.dateTimeContainer}
+                      >
+                        <Text style={{ textAlign: "center" }}>
+                          {formatDate(field.value)}
+                        </Text>
+                      </TouchableOpacity>
+                  ) : (
+                      <RNDateTimePicker
+                          style={{ alignSelf: "center", minWidth: "40%" }}
+                          value={new Date(field.value)}
+                          mode="date"
+                          onChange={(event, selecteDate) =>
+                              field.onChange(selecteDate)
+                          }
+                          minimumDate={new Date()}
+                      />
+                  );
+                }}
+                name="date"
             />
           </View>
+
+          {/* Sección de Hora */}
           <View style={styles.dateTimeLabelContainer}>
             <Text style={styles.label}>Hora</Text>
             <Controller
-              control={control}
-              rules={{ required: false }}
-              render={({ field }) => {
-                if (field.value === undefined) field.value = new Date();
-                return Platform.OS !== "ios" ? (
-                  <TouchableOpacity
-                    onPress={() => showTimepicker(field)}
-                    style={styles.dateTimeContainer}
-                  >
-                    <Text style={{ textAlign: "center" }}>
-                      {formatTime(field.value)}
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <RNDateTimePicker
-                    style={{ alignSelf: "center", marginRight: 8 }}
-                    value={field.value}
-                    mode="time"
-                    onChange={(event, selectedDate) =>
-                      field.onChange(selectedDate)
-                    }
-                    minimumDate={new Date()}
-                  />
-                );
-              }}
-              name="time"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => {
+                  if (field.value === undefined) field.value = new Date();
+
+                  const selectedDate = watch("date") || new Date();
+                  const today = new Date();
+                  const isToday =
+                      selectedDate.getFullYear() === today.getFullYear() &&
+                      selectedDate.getMonth() === today.getMonth() &&
+                      selectedDate.getDate() === today.getDate();
+
+                  return Platform.OS !== "ios" ? (
+                      <TouchableOpacity
+                          onPress={() => showTimepicker(field)}
+                          style={styles.dateTimeContainer}
+                      >
+                        <Text style={{ textAlign: "center" }}>
+                          {formatTime(field.value)}
+                        </Text>
+                      </TouchableOpacity>
+                  ) : (
+                      <RNDateTimePicker
+                          style={{ alignSelf: "center", marginRight: 8 }}
+                          value={field.value}
+                          mode="time"
+                          onChange={(event, selectedDate) =>
+                              field.onChange(selectedDate || field.value)
+                          }
+                          minimumDate={isToday ? new Date() : undefined}
+                      />
+                  );
+                }}
+                name="time"
             />
           </View>
         </View>
@@ -315,7 +378,7 @@ const NewEvent = () => {
             </View>
           </View>
           <View style={{ ...styles.qtyInputContainer }}>
-            <Text style={styles.label}>Duración (min)</Text>
+            <Text style={styles.label}>Duración de preferencia (min)</Text>
             <View
               style={{
                 flexDirection: "row",
@@ -343,34 +406,48 @@ const NewEvent = () => {
             </View>
           </View>
         </View>
+        {/* Cuadro de comentarios más pequeño */}
         <Controller
-          control={control}
-          rules={{ required: true, maxLength: 100 }}
-          render={({ field }) => (
-            <TextInput
-              placeholder="El partido es en el club a las ..."
-              value={field.value}
-              style={styles.input}
-              multiline={true}
-              blurOnSubmit={true}
-              onSubmitEditing={() => {
-                Keyboard.dismiss();
-              }}
-              onChangeText={field.onChange}
-            />
-          )}
-          name="description"
+            control={control}
+            rules={{ required: false, maxLength: 100 }}
+            render={({ field }) => (
+                <TextInput
+                    placeholder="Comentarios (opcional)"
+                    value={field.value || ""}
+                    style={styles.smallInput}
+                    multiline={true}
+                    blurOnSubmit={true}
+                    onSubmitEditing={() => {
+                      Keyboard.dismiss();
+                    }}
+                    onChangeText={(text) => field.onChange(text || "")}
+                />
+            )}
+            name="description"
         />
+
         {errors.description && errors.description.type === "maxLength" && (
           <Text style={styles.error}>
             La descripción no debe tener más de 50 caracteres
           </Text>
         )}
-        <CustomButton
-          title="Crear"
-          isLoading={isLoading}
-          onPress={handleSubmit(onSubmit)}
-        />
+        <View style={styles.buttonContainer}>
+          <CustomButton
+              title="Crear sin cancha"
+              isLoading={isLoading}
+              onPress={() => handleSubmit((data) => onSubmit(data, true))()}
+              color={COLORS.primary}
+              style={styles.button}
+          />
+
+          <CustomButton
+              title="Buscar canchas"
+              isLoading={isLoading}
+              onPress={() => handleSubmit((data) => onSubmit(data, false))()}
+              color={COLORS.primary}
+              style={styles.button}
+          />
+        </View>
         <Text style={styles.error}>{renderErrors()}</Text>
       </KeyboardAvoidingView>
     </ScrollView>
@@ -400,6 +477,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     width: "90%",
     alignSelf: "center",
+    gap: 50,
+    marginRight: 10
+  },
+  button: {
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  dateTimeRowContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
   },
   dateTimeContainer: {
     borderWidth: 1,
@@ -407,7 +496,17 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 8,
     paddingHorizontal: 15,
-    minWidth: 140,
+    minWidth: 130,
+    alignSelf: "center",
+  },
+  smallInput: {
+    height: 80,
+    alignSelf: "stretch",
+    paddingHorizontal: 10,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderRadius: 4,
+    fontSize: 16,
   },
   dateSectionContainer: {
     flexDirection: "row",
@@ -417,10 +516,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   dateTimeLabelContainer: {
-    flexDirection: "column",
+    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    minWidth: "40%",
+  },
+  timeContainer: {
+    alignItems: "center",
   },
   label: {
     marginBottom: 10,
@@ -429,7 +529,7 @@ const styles = StyleSheet.create({
     fontWeight: 600,
   },
   qtyInputContainer: {
-    alignSelf: "center", // Center the input container horizontally
+    alignSelf: "center",
     padding: 10,
     alignItems: "center",
   },
@@ -439,7 +539,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     fontSize: 16,
     paddingHorizontal: 5,
-    marginTop: 5, // Add some space between the label and the input
+    marginTop: 5,
   },
   inputsContainer: {
     flexDirection: "row",

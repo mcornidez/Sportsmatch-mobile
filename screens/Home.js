@@ -1,5 +1,5 @@
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -15,6 +15,7 @@ import { StyleSheet } from "react-native";
 import { NoContentMessage } from "../components/NoContentMessage";
 import { UserContext } from "../contexts/UserContext";
 import {getSports} from "../services/sportService";
+import { useFocusEffect } from "@react-navigation/native";
 
 const Home = ({ navigation, route }) => {
   const [eventsList, setEventsList] = useState([]);
@@ -23,6 +24,39 @@ const Home = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [sports, setSports] = useState([]);
   const {currUser} = useContext(UserContext);
+
+  const loadEvents = async () => {
+    if (!currUser || !currUser.id) {
+      console.warn("⚠️ Usuario no autenticado, no se pueden cargar eventos.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const filters = route.params?.filters ? JSON.parse(route.params.filters) : undefined;
+
+      const data = await fetchNearEvents(currUser.id, filters);
+
+      if (!data || !data.items) {
+        console.error("❌ Error: Respuesta de fetchNearEvents no válida:", data);
+        setEventsList([]);
+        setFilteredEventList([]);
+      } else {
+        setEventsList(data.items);
+        setFilteredEventList(data.items);
+      }
+    } catch (error) {
+      console.error("Error loading events:", error);
+    }
+    setLoading(false);
+  };
+
+  useFocusEffect(
+      useCallback(() => {
+        loadEvents();
+      }, [currUser, route.params?.filters])
+  );
+
 
   useEffect(() => {
     const fetchSports = async () => {

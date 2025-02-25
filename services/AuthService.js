@@ -1,5 +1,5 @@
 import { btoa } from "react-native-quick-base64";
-import { API_URL } from "./eventService";
+import { API_URL } from '@env';
 
 const getBasicToken = (email, password) => {
   const credentials = email + ":" + password;
@@ -12,14 +12,10 @@ const login = async (email, password) => {
       headers: { "c-basic-auth": getBasicToken(email, password) },
     };
     const response = await fetch(API_URL + "/auth", config);
-    console.log("dentro de login")
-    console.log(response.status)
-    console.log(response.text)
     const body = await response.json();
-    console.log(body)
     return [response.headers.map["c-api-key"], body.user];
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 
@@ -35,9 +31,9 @@ const register = async (data) => {
   try {
     json = await response.json();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
-  if (response.status == 201) {
+  if (response.status === 201) {
     return {
       ok: true,
     };

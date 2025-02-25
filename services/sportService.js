@@ -1,7 +1,8 @@
+import { API_URL } from '@env';
 
 export const getSports = async () => {
     try {
-        const response = await fetch('http://192.168.1.18:3000/sports');
+        const response = await fetch(API_URL + '/sports');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

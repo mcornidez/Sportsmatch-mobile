@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, {useEffect, useRef} from "react";
 import 'react-native-gesture-handler';
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -9,12 +9,20 @@ import { useAuthContext, AuthContext } from "./contexts/authContext";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { getCurrUserJWT, clearUserData } from "./services/LocalStorageService";
 import { COLORS } from "./constants";
+import { setNavigationRef } from './services/eventService';
 
 const Stack = createStackNavigator();
 
 const App = () => {
 
   const authContext = useAuthContext();
+  const navigationRef = useRef(null);
+
+  useEffect(() => {
+    if (navigationRef.current) {
+      setNavigationRef(navigationRef.current);
+    }
+  }, [navigationRef.current]);
 
   useEffect(() => {
     const restoreUserToken = async () => {
@@ -42,7 +50,7 @@ const App = () => {
   return (
     <ActionSheetProvider>
       <AuthContext.Provider value={authContext}>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <Stack.Navigator
             screenOptions={{
               headerShown: false,

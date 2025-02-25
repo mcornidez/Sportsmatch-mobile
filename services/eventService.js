@@ -2,20 +2,47 @@ import { EVENT_STATUS, EXPERTISE } from "../constants/data";
 import * as SecureStore from "expo-secure-store";
 import { API_URL } from '@env';
 
+let navigationRef = null;
+export const setNavigationRef = (ref) => {
+  navigationRef = ref;
+};
+
+
 export const authenticatedFetch = async (url, options = {}) => {
   try {
     const token = await SecureStore.getItemAsync("userToken");
+
+    if (!token) {
+      throw new Error("No token found, user must log in.");
+    }
+
     const headers = {
       ...options.headers,
       "C-api-key": token,
     };
+
     const response = await fetch(API_URL + url, { ...options, headers });
     console.log(`Response for ${url} :`, response.status);
     if (response.status >= 400 && response.status < 600) {
       const body = await response.json();
-      if (response.status === 401 && body.internalStatus === "TOKEN_EXPIRED") {
-        // await refreshSession();
-        // return await authenticatedFetch(url, options);
+      if (response.status === 401 && body.error === "Expired token.") {
+        console.log("⚠️ Token expirado, cerrando sesión...");
+        await SecureStore.deleteItemAsync("userToken");
+        await SecureStore.deleteItemAsync("userData");
+
+        if (navigationRef) {
+          navigationRef.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          });
+        }else {
+          console.error("🚨 ERROR: navigationRef is null, cannot redirect.");
+        }
+
+        return {
+          failed: true,
+          message: "Tu sesión ha expirado. Por favor, vuelve a iniciar sesión."
+        };
       } else if (response.status === 409) {
         return {
           failed: true,
@@ -27,6 +54,7 @@ export const authenticatedFetch = async (url, options = {}) => {
     return response;
   } catch (err) {
     console.log("ERROR: ", err);
+    return { failed: true, message: err.message };
   }
 };
 
@@ -50,17 +78,16 @@ export const fetchParticipants = async (eventId, status) => {
 
 //TODO: clean this code
 export const fetchEvents = async (userId, filters) => {
-  console.log("FILTROS ", filters);
   let filterString;
-  if (filters) {
-    if (filters.date != "") filters.date = filters.date.split("T")[0];
+  if (filters !== undefined) {
+    if (filters.date !== "") filters.date = filters.date.split("T")[0];
     else delete filters.date;
-    if (filters.expertise != "")
+    if (filters.expertise !== "")
       filters.expertise = EXPERTISE.indexOf(filters.expertise) + 1;
     else delete filters.expertise;
-    if (!filters.schedule || filters.schedule.length == 0)
+    if (!filters.schedule || filters.schedule.length === 0)
       delete filters.schedule;
-    if(filters.location == "") delete filters.location;
+    if(filters.location === "") delete filters.location;
     filterString = Object.entries(filters)
       .map(([key, value]) => {
         console.log("KEY: " + key + " VALUE: " + value);
@@ -94,26 +121,56 @@ export const fetchMyEvents = async (userId) => {
 
 export const fetchNearEvents = async (userId, filters = undefined) => {
   try {
+
     const response = await fetchEvents(userId, filters);
-    let jsonRes = await response.json();
+    if (!response.ok) {
+      console.error("❌ Error en fetchNearEvents: HTTP", response.status);
+      return { items: [] };  // Retorna un array vacío en caso de error
+    }
+
+    let jsonRes;
+    try {
+      jsonRes = await response.json();
+    } catch (error) {
+      console.error("❌ Error parseando JSON en fetchNearEvents:", error);
+      return [];
+    }
+
     jsonRes.items = jsonRes.items?.filter(
-      (event) =>
-        event.remaining > 0 && event.eventStatus !== EVENT_STATUS.FINALIZED
+        (event) => event.remaining > 0 && event.eventStatus !== EVENT_STATUS.FINALIZED
     );
+
     return jsonRes;
   } catch (err) {
-    console.log("ERRPR", err);
+    console.error("🚨 Error en fetchNearEvents:", err);
+    return { items: [] };
   }
 };
 
+
 export const publishEvent = async (eventData) => {
-  await authenticatedFetch("/events", {
-    method: "POST",
-    body: JSON.stringify(eventData),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  try {
+    const response = await authenticatedFetch("/events", {
+      method: "POST",
+      body: JSON.stringify(eventData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.failed) {
+      console.error("❌ Error en publishEvent:", response.message);
+      return null;
+    }
+
+    const jsonResponse = await response.json();  // 🔹 Procesa la respuesta
+    console.log("✅ Evento creado correctamente:", jsonResponse);
+
+    return jsonResponse;  // 🔹 Retorna la respuesta para obtener eventId
+  } catch (error) {
+    console.error("❌ Error al publicar el evento:", error);
+    return null;
+  }
 };
 
 export const fetchUserId = async (email, userJWT) => {
@@ -127,7 +184,7 @@ export const fetchEventById = async (eventId) => {
 };
 
 export const joinNewEvent = async (eventId, userId) => {
-  await authenticatedFetch("/events/" + eventId + "/participants", {
+  return await authenticatedFetch("/events/" + eventId + "/participants", {
     method: "POST",
     body: JSON.stringify({ userId: userId }),
     headers: {
@@ -163,8 +220,10 @@ export const quitEvent = async (eventId, userId) => {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
+      "x-auth-type": "user",
     },
   });
+  console.log("Response headers sent:", res.headers);
   return res;
 };
 
@@ -174,6 +233,7 @@ export const removeParticipantAsOwner = async (eventId, userId) => {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
+      "x-auth-type": "user",
     },
   });
 };

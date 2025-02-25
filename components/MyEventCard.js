@@ -30,12 +30,16 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
   const [isRated, setIsRated] = useState(props.isRated);
 
   useEffect(() => {
+    /*
     const fetchImage = async () => {
       const response = await fetchUserImage(props.userId);
-      if (response.status == 200) {
+      if (response === undefined)
+        console.error("fetch image response undefined")
+      if (response.status === 200) {
         setImage(response.imageURL);
       }
     };
+    */
     try {
       fetchImage();
     } catch (err) {
@@ -49,7 +53,7 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
       setModalVisible(false);
       setIsRated(true);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       //TODO: send user feedback of this error
     }
   };
@@ -60,7 +64,7 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
       await acceptParticipant(eventId, props.userId);
       setUserAccepted(true);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 

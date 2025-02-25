@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { EXPERTISE, SPORT, MONTHS, EVENT_STATUS } from "../constants/data";
 import { COLORS, FONTS } from "../constants";
 import { Avatar } from "@rneui/themed";
+import {DateTime, Settings} from "luxon";
 import { getDateComponents } from "../utils/datetime";
 import { AirbnbRating } from "@rneui/base";
 import { rateUser } from "../services/eventService";
@@ -26,9 +27,28 @@ const Card = ({ props }) => {
   const [loading, setLoading] = useState(true);
   const [isRated, setIsRated] = useState(props.isRated);
 
+  const [image, setImage] = React.useState(null);
+
+  let eventDate = DateTime.fromFormat(props.schedule,
+      "yyyy-MM-dd HH:mm:ssZZ"
+  );
+  eventDate = eventDate.plus({ hours: 3 });
+  const monthIndex = eventDate.month - 1;
+  const formattedMonth = MONTHS[monthIndex];
+  const formattedDate = `${eventDate.day} de ${formattedMonth}`;
+  const formattedTime = eventDate.toFormat("HH:mm");
+
   const handlePress = () => {
     const routeName = `Evento${navigation.getId() === "MyEventsStackNavigator" ? "-MisEventos" : ""}`;
-    navigation.navigate(routeName, { eventId: props.id, userImgURL: image, ownerRating : { rating: props.rating.rate, rateCount: props.rating.count}});
+    navigation.navigate(routeName, {
+      eventId: props.id,
+      userImgURL: props.userImgURL,
+      ownerRating : {
+        rating: props.rating.rate,
+        rateCount: props.rating.count
+      }
+    }
+    );
   };
 
   const postUserRating = async () => {
@@ -37,28 +57,32 @@ const Card = ({ props }) => {
       setModalVisible(false);
       setIsRated(true);
     } catch (error) {
-      console.log(error);
+      console.error(error);
       //TODO: send user feedback of this error
     }
   };
   const { day, month, hours, minutes } = getDateComponents(props?.schedule);
 
-  const [image, setImage] = React.useState(null);
-
+  /*
   useEffect(() => {
+
     const fetchImage = async () => {
       const response = await fetchUserImage(props.owner.id);
-      if (response.status == 200) {
+      if (response === undefined)
+        console.error("fetch image response undefined")
+      if (response.status === 200) {
         setImage(response.imageURL);
       }
       setLoading(false);
     };
+
     try {
       fetchImage();
     } catch (err) {
       console.error("ERROR fetching user data", err);
     }
   }, []);
+      */
 
   const renderRating = () => {
     return (
@@ -113,7 +137,7 @@ const Card = ({ props }) => {
                 rounded
                 size={100}
                 source={image ? { uri: image } : DefaultProfile}
-                containerStyle={{ backgroundColor: COLORS.secondary }}
+                containerStyle={styles.avatar}
               />
               <Text style={styles.cardMidText}>{props.owner.firstName}</Text>
             </View>
@@ -122,7 +146,7 @@ const Card = ({ props }) => {
               <Text style={styles.cardBigText}>
                 {SPORT[props.sportId - 1]}
               </Text>
-              <Text style={[FONTS.body2, {fontWeight: 700, color: COLORS.darkgray}]}>
+              <Text style={styles.cardExpertise}>
                 {EXPERTISE[props.expertise - 1]}
               </Text>
               </View>
@@ -146,7 +170,7 @@ const Card = ({ props }) => {
           </View>
           <View style={styles.bottomSection}>
             <Text style={[styles.cardSmText, { color: COLORS.white }]}>
-              {day} de {MONTHS[month - 1]} {hours}:{minutes} hs
+              {formattedDate} {formattedTime} hs
             </Text>
             <Text style={[styles.cardSmText, { color: COLORS.white }]}>
               {props.location}
@@ -161,13 +185,13 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: "100%",
-    marginVertical: 5,
+    marginVertical: 10,
     borderRadius: 8,
     flexDirection: "column",
     borderWidth: 3,
     borderColor: COLORS.primary,
-    maxHeight: 180,
-    minHeight: 180,
+    maxHeight: 150,
+    minHeight: 150,
     justifyContent: "space-between",
     gap: 8,
     backgroundColor: COLORS.white,
@@ -175,7 +199,7 @@ const styles = StyleSheet.create({
 
   userSection: {
     paddingTop: 4,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
@@ -191,13 +215,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
+
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 10,
+    marginBottom: 5,
+    backgroundColor: COLORS.primary,
+  },
+
   cardBigText: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 700,
     color: COLORS.primary,
+    marginLeft: 6,
+  },
+  cardExpertise: {
+    fontSize: 16,
+    fontWeight: 500,
+    color: COLORS.darkgray,
+    marginLeft: 6,
+    marginTop: 5
   },
   cardMidText: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: "bold",
   },
   cardSmText: {

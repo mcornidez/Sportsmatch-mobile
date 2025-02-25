@@ -21,14 +21,14 @@ const styles = StyleSheet.create({
         maxWidth: 140,
         justifyContent: 'space-between',
         borderRadius: 8,
-        paddingHorizontal: 12,
+        paddingHorizontal: 16,
         paddingVertical: 6,
         alignItems: 'center',
+        marginLeft: 6,
         backgroundColor: COLORS.primary10
     },
     qtyContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
-        marginLeft: 6
+        alignItems: 'center'
     }
 });

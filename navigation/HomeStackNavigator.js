@@ -1,49 +1,45 @@
 import React from 'react';
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import {Ionicons} from '@expo/vector-icons';
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { NewEvent, Home, Event } from '../screens';
-import { View } from 'react-native';
+import { Home, Event } from '../screens';
+import { TouchableOpacity, View } from 'react-native';
 import FilterModal from '../screens/Filters';
+import SearchFields from "../screens/SearchFields";
+import NewEvent from "../screens/NewEvent";
 
 const Stack = createNativeStackNavigator();
 
-const HomeStackNavigator = () => {
-    const navigator = useNavigation();
-    const [showFilters, setShowFilters] = React.useState(false);
+const HomeStackNavigator = ({ navigation }) => {
     return (
         <Stack.Navigator
-            screenOptions={{ headerTintColor: COLORS.white, headerShown: true, statusBarColor: COLORS.primary, headerStyle: {backgroundColor: COLORS.primary}}}>
-            <Stack.Group>
-                <Stack.Screen
-                    options={{
-                        headerRight: () => {
-                            return (
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <Ionicons
-                                        name='options'
-                                        size={24}
-                                        color={COLORS.white}
-                                        onPress={() => navigator.navigate("Filtros")}
-                                    />
-                                    <Ionicons
-                                        name='add'
-                                        size={30}
-                                        color={COLORS.white}
-                                        onPress={() => navigator.navigate("Nuevo Evento")}
-                                    />
-                                </View>
-                            )
-                        }
-                    }}
-                    name="Inicio" component={Home}/>
-                <Stack.Screen name="Evento" component={Event} />
-                <Stack.Screen name="Nuevo Evento" component={NewEvent}
-                />
-            </Stack.Group>
-            <Stack.Group screenOptions={{ presentation: 'fullScreenModal', headerShown: false}}>
-                <Stack.Screen name="Filtros" component={FilterModal}/>
+            initialRouteName="Inicio"
+            screenOptions={{
+                headerTintColor: COLORS.white,
+                headerStyle: { backgroundColor: COLORS.primary },
+            }}
+        >
+            <Stack.Screen
+                name="Inicio"
+                component={Home}
+                options={{
+                    headerRight: () => (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10 }}>
+                            {/* Botón de agregar evento */}
+                            <TouchableOpacity onPress={() => navigation.navigate("Nuevo Evento")} style={{ paddingHorizontal: 6 }}>
+                                <Ionicons name="add" size={26} color={COLORS.white} />
+                            </TouchableOpacity>
+                        </View>
+                    )
+                }}
+            />
+            <Stack.Screen name="Evento" component={Event} />
+            <Stack.Screen name="Buscar Canchas" component={SearchFields} />
+            <Stack.Screen name="Nuevo Evento" component={NewEvent} />
+
+            {/* Modales */}
+            <Stack.Group screenOptions={{ presentation: 'fullScreenModal', headerShown: false }}>
+                <Stack.Screen name="Filtros" component={FilterModal} />
             </Stack.Group>
         </Stack.Navigator>
     );

@@ -11,14 +11,25 @@ import { COLORS } from "../constants";
 import { Spots } from "./Spots";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
+import { DateTime } from "luxon";
 
 const MyEventList = ({ data }) => {
   const [participantList, setParticipantsList] = useState(
     data.item.participants
   );
   const [remaining, setRemaining] = useState(+data.item.remaining);
-  const { hours, day, month, minutes } = getDateComponents(data.item.schedule);
   const navigation = useNavigation();
+
+    let eventDate = DateTime.fromFormat(data.item.schedule, "yyyy-MM-dd HH:mm:ssZZ");
+
+    if (!eventDate.isValid) {
+        eventDate = DateTime.invalid("Fecha inválida");
+    } else {
+        eventDate = eventDate.plus({ hours: 3 });
+    }
+
+    const formattedDate = eventDate.isValid ? `${eventDate.day}/${eventDate.month}` : "--/--";
+    const formattedTime = eventDate.isValid ? eventDate.toFormat("HH:mm") : "--:--";
 
   const handleRemoveParticipant = async (eventId, participantId) => {
     try {
@@ -36,7 +47,7 @@ const MyEventList = ({ data }) => {
       );
       setRemaining(remaining + 1);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
@@ -89,7 +100,7 @@ const MyEventList = ({ data }) => {
           </Text>
           <Text
             style={{ fontSize: 18, fontWeight: 600 }}
-          >{`${day}/${month} ${hours}:${minutes} hs`}</Text>
+          >{formattedDate} {formattedTime} hs</Text>
         </View>
         <View
           style={{

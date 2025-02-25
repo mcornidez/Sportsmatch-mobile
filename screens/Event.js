@@ -22,6 +22,8 @@ import { getDateComponents } from "../utils/datetime";
 import DefaultProfile from "../assets/default-profile.png";
 import { UserContext } from "../contexts/UserContext";
 import { fetchUserImage } from "../services/userService";
+import {DateTime} from "luxon";
+import {AuthContext} from "../contexts/authContext";
 
 const Event = ({ route }) => {
   const { eventId, userImgURL, ownerRating, ownerId } = route.params;
@@ -32,13 +34,14 @@ const Event = ({ route }) => {
   const [imageURL, setImageURL] = useState(userImgURL);
   const { currUser } = useContext(UserContext);
   const [eventData, setEventData] = useState(null);
+  const { signOut } = useContext(AuthContext);
 
   useEffect(() => {
     setLoading(true);
     fetchEventById(eventId).then((data) => {
       setEventData(data);
     });
-
+    /*
     if (!route.params.userImgURL) {
       const fetchImage = async () => {
         const response = await fetchUserImage(ownerId);
@@ -53,7 +56,8 @@ const Event = ({ route }) => {
         console.error("ERROR fetching user data", err);
       }
     }
-  }, [eventId, userImgURL, ownerId]);
+    */
+     }, [eventId, userImgURL, ownerId]);
 
   useEffect(() => {
     if (eventData)
@@ -95,9 +99,10 @@ const Event = ({ route }) => {
     console.log("Joining event", currUser);
     try {
       await joinNewEvent(eventId, currUser.id);
+
       setUserStatus(USER_STATUS.REQUESTING);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
     setSubmitLoading(false);
   };
@@ -149,9 +154,14 @@ const Event = ({ route }) => {
     }
   };
 
-  const { day, month, hours, minutes } = getDateComponents(eventData?.schedule);
+  let eventDate = eventData?.schedule
+      ? DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ").plus({ hours: 3 })
+      : null;
 
-  return loading ? (
+  const formattedDate = eventDate ? `${eventDate.day} de ${MONTHS[eventDate.month - 1]}` : "-- de --";
+  const formattedTime = eventDate ? eventDate.toFormat("HH:mm") : "--:--";
+
+  return loading || !eventData ? (
     <ActivityIndicator
       size="large"
       color={COLORS.primary}
@@ -164,7 +174,7 @@ const Event = ({ route }) => {
           rounded
           size={110}
           source={imageURL ? { uri: imageURL } : DefaultProfile}
-          containerStyle={{ backgroundColor: COLORS.secondary }}
+          containerStyle={styles.avatar}
         />
         <View style={styles.headerData}>
           <Text style={styles.bigText}>{eventData.owner?.firstName}</Text>
@@ -187,9 +197,7 @@ const Event = ({ route }) => {
       <View style={styles.eventBody}>
         <View style={styles.bodySection}>
           <Text style={styles.bodyBigText}>Fecha:</Text>
-          <Text style={styles.bodyMidText}>{`${day} de ${
-            MONTHS[month - 1]
-          } ${hours}:${minutes} hs`}</Text>
+          <Text style={styles.bodyMidText}>{`${formattedDate} ${formattedTime} hs`}</Text>
         </View>
         <Divider width={1} />
         <View style={styles.bodySection}>
@@ -258,7 +266,7 @@ const styles = StyleSheet.create({
   },
 
   bigText: {
-    fontSize: 36,
+    fontSize: 26,
     fontWeight: "bold",
     alignSelf: "center",
   },
@@ -276,6 +284,15 @@ const styles = StyleSheet.create({
   bodyMidText: {
     fontSize: 18,
     paddingTop: 4,
+  },
+
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 10,
+    marginBottom: 5,
+    backgroundColor: COLORS.primary,
   },
 
   eventBody: {
