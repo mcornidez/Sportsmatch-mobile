@@ -116,6 +116,11 @@ const Login = () => {
             onPress={handleSubmit(onSubmit)}
             loading={loading}
           />
+          <CustomButton
+            title="Pay"
+            onPress={() => navigation.navigate("NewPayment")}
+            style={{ marginTop: 10 }}
+          />
           <TouchableOpacity
             style={{ marginTop: 10 }}
             onPress={() => navigation.navigate("Register")}
