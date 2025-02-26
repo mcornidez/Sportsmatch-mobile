@@ -70,7 +70,7 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
 
   const sendMessage = () => {
     Linking.openURL(
-      `whatsapp://send?phone=${+props.phoneNumber}&text=Hola ${props.firstname
+      `https://api.whatsapp.com/send?phone=${+props.phoneNumber}&text=Hola ${props.firstname
       }. Nos vemos en el partido!`
     );
   };
