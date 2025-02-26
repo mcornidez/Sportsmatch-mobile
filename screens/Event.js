@@ -17,13 +17,16 @@ import {
 } from "../services/eventService";
 import { Avatar, Divider } from "@rneui/themed";
 import { COLORS } from "../constants";
+import { useNavigation } from "@react-navigation/native";
 import { MONTHS } from "../constants/data";
 import { getDateComponents } from "../utils/datetime";
 import DefaultProfile from "../assets/default-profile.png";
 import { UserContext } from "../contexts/UserContext";
 import { fetchUserImage } from "../services/userService";
+import { fetchReservationsByEvent } from "../services/reservationService";
 import {DateTime} from "luxon";
 import {AuthContext} from "../contexts/authContext";
+import * as SecureStore from "expo-secure-store";
 
 const Event = ({ route }) => {
   const { eventId, userImgURL, ownerRating, ownerId } = route.params;
@@ -34,13 +37,24 @@ const Event = ({ route }) => {
   const [imageURL, setImageURL] = useState(userImgURL);
   const { currUser } = useContext(UserContext);
   const [eventData, setEventData] = useState(null);
+  const [reservationData, setReservationData] = useState(null);
   const { signOut } = useContext(AuthContext);
+  const navigation = useNavigation();
 
   useEffect(() => {
     setLoading(true);
     fetchEventById(eventId).then((data) => {
       setEventData(data);
     });
+
+    fetchReservationsByEvent(eventId)
+        .then((reservations) => {
+          if (reservations.length > 0) {
+            setReservationData(reservations[0]);
+          }
+        })
+        .catch((err) => console.error("Error fetching reservation:", err))
+        .finally(() => setLoading(false));
     /*
     if (!route.params.userImgURL) {
       const fetchImage = async () => {
@@ -58,6 +72,18 @@ const Event = ({ route }) => {
     }
     */
      }, [eventId, userImgURL, ownerId]);
+
+  const handlePayment = async () => {
+    if (!reservationData) return;
+
+    const token = await SecureStore.getItemAsync("userToken");
+
+    navigation.navigate("NewPayment", {
+      amount: reservationData.cost,
+      reservationId: reservationData.id,
+      apiKey: token,
+    });
+  };
 
   useEffect(() => {
     if (eventData)
@@ -209,8 +235,15 @@ const Event = ({ route }) => {
         <Divider width={1} />
         <View style={styles.bodySection}>
           <Text style={styles.bodyBigText}>Ubicación:</Text>
-          <Text style={styles.bodyMidText}>{eventData.location}</Text>
+          <Text
+              style={styles.bodyMidText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+          >
+            {eventData.location?.split(",")[0] || "Ubicación desconocida"}
+          </Text>
         </View>
+
         <Divider width={1} />
         <View style={{ ...styles.bodySection }}>
           <Text style={styles.bodyBigText}>Descripción:</Text>
@@ -227,10 +260,14 @@ const Event = ({ route }) => {
         <Divider width={1} />
         {!ownerId && renderParticipantStatusMessage()}
       </View>
-      {!ownerId && (
-        <View style={{ alignSelf: "stretch" }}>
-          {renderEventButton(submitLoading)}
-        </View>
+      {ownerId ? (
+          <View style={{ alignSelf: "stretch" }}>
+            <CustomButton title={"Pagar reserva"} onPress={handlePayment} color={COLORS.primary} />
+          </View>
+      ) : (
+          <View style={{ alignSelf: "stretch" }}>
+            {renderEventButton(submitLoading)}
+          </View>
       )}
     </View>
   );

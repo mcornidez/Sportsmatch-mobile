@@ -32,3 +32,30 @@ export const createReservation = async ({ eventId, fieldId, slotId }) => {
         throw error;
     }
 };
+
+export const fetchReservationsByEvent = async (eventId) => {
+    const token = await SecureStore.getItemAsync("userToken");
+
+    if (!token) {
+        throw new Error("No token found, user must log in.");
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/reservations/event/${eventId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "c-api-key": token,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error("Error al obtener la reserva");
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error obteniendo la reserva:", error);
+        return [];
+    }
+};

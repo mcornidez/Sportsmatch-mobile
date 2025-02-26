@@ -79,7 +79,10 @@ const MyEventList = ({ data }) => {
 
   const sport = sports.find((s) => s.id === data.item.sportId)?.name || "Deporte desconocido";
 
-  return (
+  const formattedLocation = data.item.location?.split(",")[0] || "Ubicación desconocida";
+
+
+    return (
     <View style={{ minWidth: "100%", paddingHorizontal: 24, paddingTop: 8 }}>
       <TouchableOpacity
         style={{
@@ -110,9 +113,6 @@ const MyEventList = ({ data }) => {
             justifyContent: "space-between",
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: 600 }}>
-            {data.item.location}
-          </Text>
           <Text
             style={{ fontSize: 18, fontWeight: 600 }}
           >{formattedDate} {formattedTime} hs</Text>

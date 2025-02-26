@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { COLORS } from '../constants';
+import { useNavigation } from '@react-navigation/native';
+import { API_URL } from '@env';
 
-export const API_URL = "http://192.168.0.67:8080";
-
-const NewPayment = () => {
+const NewPayment = ({route}) => {
+    const navigation = useNavigation();
     const [webViewContent, setWebViewContent] = useState('');
+    const { amount, reservationId, apiKey } = route.params;
 
     useEffect(() => {
         const htmlContent = `
@@ -28,7 +30,7 @@ const NewPayment = () => {
                     const renderCardPaymentBrick = async (bricksBuilder) => {
                         const settings = {
                             initialization: {
-                                amount: 100,
+                                amount: ${amount},
                                 payer: {
                                     email: "",
                                 },
@@ -56,10 +58,11 @@ const NewPayment = () => {
                                             data: cardFormData
                                         }));
                                         
-                                        fetch("${API_URL}/payments/process_payment", {
+                                        fetch("${API_URL}/payments/${reservationId}/process_payment", {
                                             method: "POST",
                                             headers: {
                                                 "Content-Type": "application/json",
+                                                "c-api-key": "${apiKey}"
                                             },
                                             body: JSON.stringify(cardFormData)
                                         })

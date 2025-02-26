@@ -64,7 +64,6 @@ const App = () => {
                 <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Register" component={Register} />
                 <Stack.Screen name="ConfirmSignUp" component={ConfirmSignUp} />
-                <Stack.Screen name="NewPayment" component={NewPayment} />
               </>
             )}
           </Stack.Navigator>

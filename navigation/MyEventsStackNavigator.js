@@ -1,5 +1,5 @@
 import { COLORS } from "../constants";
-import { Event, MyEvents } from "../screens";
+import { Event, MyEvents, NewPayment } from "../screens";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 const Stack = createNativeStackNavigator();
@@ -11,8 +11,8 @@ export const MyEventsStackNavigator = () => {
             screenOptions={{ headerTintColor: COLORS.white, headerShown: true, statusBarColor: COLORS.primary, headerStyle: { backgroundColor: COLORS.primary } }}>
             <Stack.Group>
                 <Stack.Screen name="Mis Eventos" component={MyEvents} />
-                <Stack.Screen name="Evento-MisEventos" options={{title: "Evento"}} component={Event}
-                />
+                <Stack.Screen name="Evento-MisEventos" options={{title: "Evento"}} component={Event}/>
+                <Stack.Screen name="NewPayment" options={{title: "Pagar reserva"}} component={NewPayment} />
             </Stack.Group>
         </Stack.Navigator>
     );

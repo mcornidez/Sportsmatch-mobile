@@ -49,7 +49,7 @@ const Card = ({ props }) => {
   eventDate = eventDate.plus({ hours: 3 });
   const monthIndex = eventDate.month - 1;
   const formattedMonth = MONTHS[monthIndex];
-  const formattedDate = `${eventDate.day} de ${formattedMonth}`;
+  const formattedDate = eventDate.toFormat("dd/MM");
   const formattedTime = eventDate.toFormat("HH:mm");
 
   const handlePress = () => {
@@ -189,7 +189,9 @@ const Card = ({ props }) => {
               {formattedDate} {formattedTime} hs
             </Text>
             <Text style={[styles.cardSmText, { color: COLORS.white }]}>
-              {props.location}
+              <Text style={[styles.cardSmText, { color: COLORS.white }]}>
+                {props.location?.split(',')[0] || "Ubicación desconocida"}
+              </Text>
             </Text>
           </View>
         </TouchableOpacity>
