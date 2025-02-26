@@ -109,7 +109,7 @@ const Register = ({ navigation }) => {
             />
           </View>
           {errors.name && (
-            <Text style={styles.error}>Este campo no puede estar vacio</Text>
+            <Text style={styles.error}>Este campo no puede estar vacío</Text>
           )}
           <View style={styles.inputContainer}>
             <Text style={styles.inputText}>Apellido</Text>
@@ -157,7 +157,7 @@ const Register = ({ navigation }) => {
             />
           </View>
           {errors.email && (
-            <Text style={styles.error}>Por favor ingrese un email válido</Text>
+            <Text style={styles.error}>Por favor ingresá un email válido</Text>
           )}
           {emailConflict && (
             <Text style={styles.error}>El email ya está en uso</Text>
@@ -183,11 +183,11 @@ const Register = ({ navigation }) => {
           </View>
           {errors.birthdate && (
             <Text style={styles.error}>
-              Por favor ingrese su fecha de nacimiento
+              Por favor ingresá tu fecha de nacimiento
             </Text>
           )}
           <View style={styles.inputContainer}>
-            <Text style={styles.inputText}>Telefono</Text>
+            <Text style={styles.inputText}>Teléfono</Text>
             <Controller
               control={control}
               rules={{
@@ -201,7 +201,7 @@ const Register = ({ navigation }) => {
                   defaultValue={""}
                   defaultCode="AR"
                   layout="first"
-                  placeholder="Numero de telefono"
+                  placeholder="Número de telefono"
                   containerStyle={styles.phoneContainer}
                   textContainerStyle={styles.phoneContainer.input}
                   flagButtonStyle={styles.phoneContainer.flag}
@@ -215,12 +215,12 @@ const Register = ({ navigation }) => {
           </View>
           {errors.phoneNumber && (
             <Text style={styles.error}>
-              Por favor ingrese un número de teléfono válido
+              Por favor ingresá un número de teléfono válido
             </Text>
           )}
           {phoneConflict && (
             <Text style={styles.error}>
-              Este número de teléfono ya fue registrado
+              Este número de teléfono ya está registrado
             </Text>
           )}
           <View style={styles.inputContainer}>
@@ -311,14 +311,14 @@ const Register = ({ navigation }) => {
           <CustomButton title="Registrarse" onPress={handleSubmit(submit)} />
           {signUpError && (
             <Text style={styles.error}>
-              Hubo un error, por favor intente nuevamente.
+              Hubo un error, por favor intentá nuevamente.
             </Text>
           )}
           <TouchableOpacity
             style={{ marginTop: 10 }}
             onPress={() => navigation.navigate("Login")}
           >
-            <Text style={styles.referal}>Ya tenes una cuenta?</Text>
+            <Text style={styles.referal}>¿Ya tenés una cuenta?</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

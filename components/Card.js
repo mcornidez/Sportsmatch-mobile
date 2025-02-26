@@ -8,7 +8,7 @@ import {
   Pressable,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { EXPERTISE, SPORT, MONTHS, EVENT_STATUS } from "../constants/data";
+import { EXPERTISE, MONTHS, EVENT_STATUS } from "../constants/data";
 import { COLORS, FONTS } from "../constants";
 import { Avatar } from "@rneui/themed";
 import {DateTime, Settings} from "luxon";
@@ -19,6 +19,7 @@ import DefaultProfile from "../assets/default-profile.png";
 import { fetchUserImage } from "../services/userService";
 import CustomButton from "./CustomButton";
 import { Spots } from "./Spots";
+import { getSports } from "../services/sportService";
 
 const Card = ({ props }) => {
   const navigation = useNavigation();
@@ -26,8 +27,21 @@ const Card = ({ props }) => {
   const [userRate, setUserRate] = useState(3);
   const [loading, setLoading] = useState(true);
   const [isRated, setIsRated] = useState(props.isRated);
+  const [sports, setSports] = useState([]);
 
   const [image, setImage] = React.useState(null);
+
+  useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        const sportsData = await getSports();
+        setSports(sportsData);
+      } catch (error) {
+        console.error("Error loading sports:", error);
+      }
+    };
+    fetchSports();
+  }, []);
 
   let eventDate = DateTime.fromFormat(props.schedule,
       "yyyy-MM-dd HH:mm:ssZZ"
@@ -83,6 +97,8 @@ const Card = ({ props }) => {
     }
   }, []);
       */
+
+  const sport = sports.find((s) => s.id === props.sportId)?.name || "Deporte desconocido";
 
   const renderRating = () => {
     return (
@@ -144,7 +160,7 @@ const Card = ({ props }) => {
             <View style={styles.verticalSection}>
               <View>
               <Text style={styles.cardBigText}>
-                {SPORT[props.sportId - 1]}
+                {sport}
               </Text>
               <Text style={styles.cardExpertise}>
                 {EXPERTISE[props.expertise - 1]}

@@ -61,7 +61,7 @@ const Login = () => {
             />
         </View>
 
-          {errors.email && <Text style={styles.error}>Email o contraseña incorrecta</Text>}
+          {errors.email && <Text style={styles.error}>Email o contraseña incorrectos</Text>}
 
           <View style={{alignSelf: 'stretch', gap: 14}}>
           <View style={styles.inputContainer}>
@@ -85,7 +85,7 @@ const Login = () => {
             />
           </View>
           {errors.email && (
-            <Text style={styles.error}>Por favor ingrese un email válido</Text>
+            <Text style={styles.error}>Por favor ingresá un email válido</Text>
           )}
 
           <View style={styles.inputContainer}>
@@ -108,11 +108,11 @@ const Login = () => {
           </View>
           </View>
           {errors.password && (
-            <Text style={styles.error}>Por favor ingrese una contraseña válida</Text>
+            <Text style={styles.error}>Por favor ingresá una contraseña válida</Text>
           )}
           <View style={{ height: 50 }}></View>
           <CustomButton
-            title="Iniciar sesion"
+            title="Iniciar sesión"
             onPress={handleSubmit(onSubmit)}
             loading={loading}
           />
@@ -120,7 +120,7 @@ const Login = () => {
             style={{ marginTop: 10 }}
             onPress={() => navigation.navigate("Register")}
           >
-            <Text style={styles.referal}>Todavía no tenes una cuenta?</Text>
+            <Text style={styles.referal}>¿Todavía no tenés una cuenta?</Text>
           </TouchableOpacity>
         </>}
       </View>

@@ -4,7 +4,7 @@ import { View } from "react-native";
 import EventStatus from "./EventStatus";
 import { Divider } from "@rneui/base";
 import MyEventCard from "./MyEventCard";
-import { EVENT_STATUS, EXPERTISE, SPORT } from "../constants/data";
+import { EVENT_STATUS, EXPERTISE } from "../constants/data";
 import { getDateComponents } from "../utils/datetime";
 import { removeParticipantAsOwner } from "../services/eventService";
 import { COLORS } from "../constants";
@@ -12,6 +12,7 @@ import { Spots } from "./Spots";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
 import { DateTime } from "luxon";
+import { getSports } from "../services/sportService";
 
 const MyEventList = ({ data }) => {
   const [participantList, setParticipantsList] = useState(
@@ -19,6 +20,20 @@ const MyEventList = ({ data }) => {
   );
   const [remaining, setRemaining] = useState(+data.item.remaining);
   const navigation = useNavigation();
+  const [sports, setSports] = useState([]);
+
+    useEffect(() => {
+        const fetchSports = async () => {
+            try {
+                const sportsData = await getSports();
+                setSports(sportsData);
+            } catch (error) {
+                console.error("Error loading sports:", error);
+            }
+        };
+
+        fetchSports();
+    }, []);
 
     let eventDate = DateTime.fromFormat(data.item.schedule, "yyyy-MM-dd HH:mm:ssZZ");
 
@@ -62,6 +77,8 @@ const MyEventList = ({ data }) => {
     });
   };
 
+  const sport = sports.find((s) => s.id === data.item.sportId)?.name || "Deporte desconocido";
+
   return (
     <View style={{ minWidth: "100%", paddingHorizontal: 24, paddingTop: 8 }}>
       <TouchableOpacity
@@ -83,10 +100,8 @@ const MyEventList = ({ data }) => {
             justifyContent: "space-between",
           }}
         >
-          <Text style={{ fontSize: 24, fontWeight: 600 }}>
-            {SPORT[data.item.sportId - 1]}
-          </Text>
-          <EventStatus status={data.item.eventStatus} />
+            <Text style={{ fontSize: 24, fontWeight: "600" }}>{sport}</Text>
+            <EventStatus status={data.item.eventStatus} />
         </View>
         <View
           style={{
