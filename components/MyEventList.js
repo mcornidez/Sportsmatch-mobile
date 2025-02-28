@@ -39,8 +39,6 @@ const MyEventList = ({ data }) => {
 
     if (!eventDate.isValid) {
         eventDate = DateTime.invalid("Fecha inválida");
-    } else {
-        eventDate = eventDate.plus({ hours: 3 });
     }
 
     const formattedDate = eventDate.isValid ? `${eventDate.day}/${eventDate.month}` : "--/--";

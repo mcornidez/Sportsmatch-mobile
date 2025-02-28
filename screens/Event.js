@@ -181,7 +181,7 @@ const Event = ({ route }) => {
   };
 
   let eventDate = eventData?.schedule
-      ? DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ").plus({ hours: 3 })
+      ? DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ")
       : null;
 
   const formattedDate = eventDate ? `${eventDate.day} de ${MONTHS[eventDate.month - 1]}` : "-- de --";

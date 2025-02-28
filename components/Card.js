@@ -46,9 +46,6 @@ const Card = ({ props }) => {
   let eventDate = DateTime.fromFormat(props.schedule,
       "yyyy-MM-dd HH:mm:ssZZ"
   );
-  eventDate = eventDate.plus({ hours: 3 });
-  const monthIndex = eventDate.month - 1;
-  const formattedMonth = MONTHS[monthIndex];
   const formattedDate = eventDate.toFormat("dd/MM");
   const formattedTime = eventDate.toFormat("HH:mm");
 
