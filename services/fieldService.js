@@ -28,6 +28,28 @@ export const getFields = async () => {
     }
 };
 
+export const getFieldsWithLocation = async (location) => {
+    const token = await SecureStore.getItemAsync("userToken");
+
+    if (!token) {
+        throw new Error("No token found, user must log in.");
+    }
+    try {
+        const url = `${API_URL}/clubs?location=${encodeURIComponent(location)}`;
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "c-api-key": token,
+            },
+        });
+    } catch (error) {
+        console.error("Error obteniendo canchas:", error);
+        return [];
+    }
+};
+
+
 const formatToISO = (date) => {
     return DateTime.fromFormat(date, "d/M/yyyy").toFormat("yyyy-MM-dd");
 };

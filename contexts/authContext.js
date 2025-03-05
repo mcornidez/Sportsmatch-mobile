@@ -45,14 +45,14 @@ export const useAuthContext = () => {
     const [userToken, userData] = await login(data.email, data.password);
     console.log("user token: ", userToken)
     await save('userToken', userToken);
-    /*
+
     const userImageUrlRes = await fetchUserImage(userData.id);
     console.log(userImageUrlRes)
     if(userImageUrlRes && userImageUrlRes?.status === 200)
       userData.imageURL = userImageUrlRes.imageURL;
     else
       userData.imageURL = null;
-     */
+
     userData.imageURL = null;
     await save('userData', JSON.stringify(userData));
     dispatch({ type: 'SIGN_IN', token: userToken });

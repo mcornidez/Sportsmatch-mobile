@@ -10,13 +10,16 @@ import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { getCurrUserJWT, clearUserData } from "./services/LocalStorageService";
 import { COLORS } from "./constants";
 import { setNavigationRef } from './services/eventService';
-
+import * as Network from 'expo-network';
 
 const Stack = createStackNavigator();
 
 const App = () => {
   const authContext = useAuthContext();
   const navigationRef = useRef(null);
+
+
+  Network.getNetworkStateAsync().then(state => console.log(state));
 
   useEffect(() => {
     if (navigationRef.current) {

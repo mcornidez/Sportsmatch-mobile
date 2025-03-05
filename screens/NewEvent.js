@@ -125,13 +125,12 @@ const NewEvent = () => {
         navigation.navigate("Buscar Canchas", {
           eventId: response.eventId,
           sportId: data.sportId,
+          location: data.location,
           date: formatDate(formData.date),
           time: formatTime(formData.time),
           duration: formData.duration
         });
       }
-
-
 
     } catch (err) {
       console.error("❌ Error creando evento:", err);

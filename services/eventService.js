@@ -21,7 +21,7 @@ export const authenticatedFetch = async (url, options = {}) => {
       "C-api-key": token,
     };
 
-    const response = await fetch(API_URL + url, { ...options, headers });
+    const response = await fetch(`${API_URL}/${url}`, { ...options, headers });
     console.log(`Response for ${url} :`, response.status);
     if (response.status >= 400 && response.status < 600) {
       const body = await response.json();
@@ -59,7 +59,7 @@ export const authenticatedFetch = async (url, options = {}) => {
 };
 
 export const fetchUser = async (email) => {
-  const data = await fetch(API_URL + "/users?email=" + email);
+  const data = await fetch(`${API_URL}/users?email=${email}`);
   const json = await data.json();
   return json;
 };
@@ -104,13 +104,13 @@ export const fetchEvents = async (userId, filters) => {
 };
 
 export const fetchJoinedEvents = async (userId) => {
-  const response = await fetch(API_URL + "/events?participantId=" + userId);
+  const response = await fetch(`${API_URL}/events?participantId=${userId}`);
   const jsonRes = await response.json();
   return jsonRes;
 };
 
 export const fetchMyEvents = async (userId) => {
-  const events = await fetch(API_URL + `/events?userId=${userId}`);
+  const events = await fetch(`${API_URL}/events?userId=${userId}`);
   const json = await events.json();
   const response = json;
   for (let i = 0; i < response.items.length; i++)
@@ -174,12 +174,12 @@ export const publishEvent = async (eventData) => {
 };
 
 export const fetchUserId = async (email, userJWT) => {
-  const data = await fetch(API_URL + "/users?email=" + email);
+  const data = await fetch(`${API_URL}/users?email=${email}`);
   return await data.json();
 };
 
 export const fetchEventById = async (eventId) => {
-  const data = await fetch(API_URL + "/events/" + eventId);
+  const data = await fetch(`${API_URL}/events/${eventId}`);
   return await data.json();
 };
 

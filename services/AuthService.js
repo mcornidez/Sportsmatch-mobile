@@ -11,7 +11,7 @@ const login = async (email, password) => {
     let config = {
       headers: { "c-basic-auth": getBasicToken(email, password) },
     };
-    const response = await fetch(API_URL + "/auth", config);
+    const response = await fetch(`${API_URL}/auth`, config);
     const body = await response.json();
     return [response.headers.map["c-api-key"], body.user];
   } catch (error) {
@@ -20,7 +20,7 @@ const login = async (email, password) => {
 };
 
 const register = async (data) => {
-  const response = await fetch(API_URL + "/auth", {
+  const response = await fetch(`${API_URL}/auth`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

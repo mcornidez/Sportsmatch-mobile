@@ -35,7 +35,7 @@ const Profile = () => {
             <Avatar
               size={108}
               rounded
-              source={ "https://cdn-icons-png.freepik.com/256/1077/1077114.png?semt=ais_hybrid" }
+              source={ currUser.imageURL ? { uri: currUser.imageURL } : DefaultProfile}
               containerStyle={{ backgroundColor: COLORS.secondary }}
             />
             <View style={styles.profileTextContainer}>

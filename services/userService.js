@@ -72,37 +72,37 @@ export const updatePhoneNumber = async (userId, phoneNumber, token) => {
 };
 
 export const fetchUserImage = async (userId) => {
-  // const res = await authenticatedFetch("/users/" + userId + "/image", {
-  //   method: "GET",
-  // });
+  const res = await authenticatedFetch("/users/" + userId + "/image", {
+     method: "GET",
+   });
 
-  // if (!res.ok) {
-  //   return {
-  //     status: res.status,
-  //     message: "Failed to fetch user image",
-  //   };
-  // }
+   if (!res.ok) {
+     return {
+       status: res.status,
+       message: "Failed to fetch user image",
+     };
+   }
 
-  // const presignedUrl = await res.json();
+   const presignedUrl = await res.json();
 
-  // var requestOptions = {
-  //   method: "GET",
-  // };
+   var requestOptions = {
+     method: "GET",
+   };
 
-  // const response = await fetch("https://cdn-icons-png.freepik.com/256/1077/1077114.png?semt=ais_hybrid", requestOptions);
+   const response = await fetch("https://cdn-icons-png.freepik.com/256/1077/1077114.png?semt=ais_hybrid", requestOptions);
 
-  // if (response.ok) {
-  //   const data = await response.text();
+   if (response.ok) {
+     const data = await response.text();
 
-  //   return {
-  //     status: response.status,
-  //     imageURL: data ? `data:image/png;base64,${data}` : null,
-  //   };
-  // }
+     return {
+       status: response.status,
+       imageURL: data ? `data:image/png;base64,${data}` : null,
+     };
+   }
 
-  // return {
-  //   status: response.status,
-  //   message: "Failed to fetch user image",
-  // };
+   return {
+     status: response.status,
+     message: "Failed to fetch user image",
+   };
 };
 

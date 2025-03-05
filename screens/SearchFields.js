@@ -9,7 +9,7 @@ import {
     StyleSheet
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { getFields, getAvailableTimeslots } from "../services/fieldService";
+import {getFields, getAvailableTimeslots, getFieldsWithLocation} from "../services/fieldService";
 import { getClubById } from "../services/clubService";
 import { createReservation } from "../services/reservationService";
 import { COLORS, FONTS } from "../constants";
@@ -19,7 +19,7 @@ const SearchFields = () => {
     const navigation = useNavigation();
     const route = useRoute();
 
-    const { eventId, sportId, date, time, duration } = route.params || {};
+    const { eventId, sportId, date, time, duration, location } = route.params || {};
 
     const [fields, setFields] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -35,7 +35,7 @@ const SearchFields = () => {
         setLoading(true);
         setRefreshing(true);
         try {
-            const allFields = await getFields();
+            const allFields = await getFieldsWithLocation(location);
 
             if (!Array.isArray(allFields) || allFields.length === 0) {
                 console.warn("⚠️ No se recibieron canchas desde el servidor.");
