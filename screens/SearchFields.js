@@ -35,7 +35,8 @@ const SearchFields = () => {
         setLoading(true);
         setRefreshing(true);
         try {
-            const allFields = await getFieldsWithLocation(location);
+            const allFields = await getFields(location);
+            //const allFields = await getFieldsWithLocation(location);
 
             if (!Array.isArray(allFields) || allFields.length === 0) {
                 console.warn("⚠️ No se recibieron canchas desde el servidor.");
@@ -176,7 +177,7 @@ const SearchFields = () => {
                 </Text>
 
                 <Text style={[styles.cardSmText, { color: COLORS.white }]}>
-                    {item.location || "Ubicación no disponible"}
+                    {item.location || "Puerto Madero"}
                 </Text>
             </View>
         </TouchableOpacity>
