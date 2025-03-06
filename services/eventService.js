@@ -21,7 +21,7 @@ export const authenticatedFetch = async (url, options = {}) => {
       "C-api-key": token,
     };
 
-    const response = await fetch(`${API_URL}/${url}`, { ...options, headers });
+    const response = await fetch(`${API_URL}${url}`, { ...options, headers });
     console.log(`Response for ${url} :`, response.status);
     if (response.status >= 400 && response.status < 600) {
       const body = await response.json();
