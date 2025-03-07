@@ -35,7 +35,7 @@ const SearchFields = () => {
         setLoading(true);
         setRefreshing(true);
         try {
-            const allFields = await getFields(location);
+            const allFields = await getFields();
             //const allFields = await getFieldsWithLocation(location);
 
             if (!Array.isArray(allFields) || allFields.length === 0) {
@@ -177,7 +177,7 @@ const SearchFields = () => {
                 </Text>
 
                 <Text style={[styles.cardSmText, { color: COLORS.white }]}>
-                    {item.location || "Puerto Madero"}
+                    {item.location || "Ubicación no disponible"}
                 </Text>
             </View>
         </TouchableOpacity>
