@@ -3,7 +3,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants';
 import { Home, Event } from '../screens';
-import { TouchableOpacity, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { useNavigation } from "@react-navigation/native";
 import FilterModal from '../screens/Filters';
 import SearchFields from "../screens/SearchFields";
 import NewEvent from "../screens/NewEvent";
@@ -11,7 +12,7 @@ import FieldReservation from "../screens/FieldReservation";
 
 const Stack = createNativeStackNavigator();
 
-const HomeStackNavigator = ({ navigation }) => {
+const HomeStackNavigator = () => {
     return (
         <Stack.Navigator
             initialRouteName="Inicio"
@@ -24,14 +25,7 @@ const HomeStackNavigator = ({ navigation }) => {
                 name="Inicio"
                 component={Home}
                 options={{
-                    headerRight: () => (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 10 }}>
-                            {/* Botón de agregar evento */}
-                            <TouchableOpacity onPress={() => navigation.navigate("Nuevo Evento")} style={{ paddingHorizontal: 6 }}>
-                                <Ionicons name="add" size={26} color={COLORS.white} />
-                            </TouchableOpacity>
-                        </View>
-                    )
+                    headerRight: () => <HeaderRight />
                 }}
             />
             <Stack.Screen name="Evento" component={Event} />
@@ -45,6 +39,53 @@ const HomeStackNavigator = ({ navigation }) => {
             </Stack.Group>
         </Stack.Navigator>
     );
-}
+};
+
+const HeaderRight = () => {
+    const navigation = useNavigation();
+
+    return (
+        <View
+            style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5, // 🔥 Espacio reducido para que no se vean tan separados
+                pointerEvents: "box-none",
+            }}
+        >
+            {/* Botón de Filtros */}
+            <Pressable
+                onPress={() => {
+                    console.log("Botón Filtros presionado");
+                    navigation.navigate("Filtros");
+                }}
+                style={{
+                    paddingHorizontal: 6, // 🔥 Ajuste de tamaño
+                    paddingVertical: 6,
+                    borderRadius: 6
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+                <Ionicons name="options" size={28} color={COLORS.white} />
+            </Pressable>
+
+            {/* Botón de Agregar Evento */}
+            <Pressable
+                onPress={() => {
+                    console.log("Botón + presionado");
+                    navigation.navigate("Nuevo Evento");
+                }}
+                style={{
+                    paddingHorizontal: 6, // 🔥 Ajuste de tamaño
+                    paddingVertical: 6,
+                    borderRadius: 6
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+                <Ionicons name="add" size={28} color={COLORS.white} />
+            </Pressable>
+        </View>
+    );
+};
 
 export default HomeStackNavigator;
