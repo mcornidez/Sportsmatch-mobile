@@ -23,17 +23,25 @@ const Login = () => {
   const authContext = useContext(AuthContext)
   const { control, handleSubmit, formState: { errors } } = useForm();
   const navigation = useNavigation();
+  const [loginError, setLoginError] = useState("");
 
   const onSubmit = async (data) => {
     setLoading(true);
-    try {
-      await authContext.signIn(data)
+    setLoginError("");
+
+    const res = await authContext.signIn(data);
+    setLoading(false);
+
+    if (res.success) return;
+
+    if (res.error === "EMAIL_NOT_FOUND") {
+      setLoginError("El email no se encuentra registrado");
+    } else if (res.error === "TOKEN_NOT_FOUND") {
+      setLoginError("Error en el servidor. Intenta nuevamente más tarde.");
+    } else {
+      setLoginError("Email o contraseña incorrectos");
     }
-    catch (err) {
-      setLoading(false);
-      console.error('Error signing in', err);
-    }
-  }
+  };
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -84,9 +92,6 @@ const Login = () => {
               name="email"
             />
           </View>
-          {errors.email && (
-            <Text style={styles.error}>Por favor ingresá un email válido</Text>
-          )}
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputText}>Contraseña</Text>
@@ -107,9 +112,7 @@ const Login = () => {
               />
           </View>
           </View>
-          {errors.password && (
-            <Text style={styles.error}>Por favor ingresá una contraseña válida</Text>
-          )}
+          {loginError ? <Text style={styles.error}>{loginError}</Text> : null}
           <View style={{ height: 50 }}></View>
           <CustomButton
             title="Iniciar sesión"

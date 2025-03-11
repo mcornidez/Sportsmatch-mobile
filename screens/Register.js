@@ -33,6 +33,7 @@ const Register = ({ navigation }) => {
   const [emailConflict, setEmailConflict] = useState(false);
   const [passError, setPassError] = useState("");
   const [confPassError, setConfPassError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const parsePhoneNumber = (phone) => {
     const parsedNumber = phoneUtil.parse(phone, "");
@@ -55,13 +56,19 @@ const Register = ({ navigation }) => {
   };
 
   const submit = async (data) => {
+    setIsLoading(true);
     setPhoneConflict(false);
     setEmailConflict(false);
     delete data.confPassword;
 
     const res = await authContext.signUp(data);
-    if (res.ok) {
+
+    setIsLoading(false);
+
+    if (res.success) {
       navigation.navigate("Login");
+    } else if (res.error === "SIGN_UP_FAILED") {
+      setSignUpError(true);
     } else if (res.internalStatus === "CONFLICT") {
       res.message === "email" ? setEmailConflict(true) : setPhoneConflict(true);
     } else if (res.internalStatus === "VALIDATION_ERROR") {
@@ -308,7 +315,11 @@ const Register = ({ navigation }) => {
           {errors.confPassword && (
             <Text style={styles.error}>Las contraseñas no son iguales</Text>
           )}
-          <CustomButton title="Registrarse" onPress={handleSubmit(submit)} />
+          <CustomButton
+              title={isLoading ? "Registrando..." : "Registrarse"}
+              onPress={handleSubmit(submit)}
+              disabled={isLoading}
+          />
           {signUpError && (
             <Text style={styles.error}>
               Hubo un error, por favor intentá nuevamente.

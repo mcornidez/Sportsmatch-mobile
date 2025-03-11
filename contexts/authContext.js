@@ -41,22 +41,23 @@ export const useAuthContext = () => {
     }
   );
 
-  const signIn = async data => {
-    const [userToken, userData] = await login(data.email, data.password);
-    console.log("user token: ", userToken)
-    await save('userToken', userToken);
+  const signIn = async (data) => {
+    const res = await login(data.email, data.password);
 
-    const userImageUrlRes = await fetchUserImage(userData.id);
-    console.log(userImageUrlRes)
-    if(userImageUrlRes && userImageUrlRes?.status === 200)
-      userData.imageURL = userImageUrlRes.imageURL;
-    else
-      userData.imageURL = null;
+    if (!res.success) {
+      return { success: false, error: res.error };
+    }
 
-    userData.imageURL = null;
-    await save('userData', JSON.stringify(userData));
-    dispatch({ type: 'SIGN_IN', token: userToken });
-    console.log(userData)
+    if (!res.user || !res.token) {
+      return { success: false, error: "LOGIN_FAILED" };
+    }
+
+    await save("userToken", res.token);
+    await save("userData", JSON.stringify(res.user));
+
+    dispatch({ type: "SIGN_IN", token: res.token });
+
+    return { success: true };
   };
 
   const signOut = () => {
@@ -65,12 +66,15 @@ export const useAuthContext = () => {
   }
 
 
-  const signUp = async data => {
+  const signUp = async (data) => {
     const res = await register(data);
-    console.log("RESPONSE: ", res);
-    dispatch({ type: 'SIGN_UP' });
-    return res;
-  }
+    if (!res || res.status >= 400) {
+      return { error: "SIGN_UP_FAILED", message: res?.message || "Error en el registro" };
+    }
+    dispatch({ type: "SIGN_UP" });
+    return { success: true };
+  };
+
 
   const restoreToken = token => dispatch({ type: 'RESTORE_TOKEN', token });
 
