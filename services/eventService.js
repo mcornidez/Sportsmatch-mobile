@@ -69,7 +69,7 @@ export const fetchParticipants = async (eventId, status) => {
   if(status == EVENT_STATUS.FINALIZED) queryParams = "?status=accepted";
 
   const response = await fetch(
-    API_URL + "/events/" + eventId + "/participants" + queryParams
+      `${API_URL}/events/${eventId}/participants${queryParams}`
   );
   const json = await response.json();
 
