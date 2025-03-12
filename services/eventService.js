@@ -96,6 +96,9 @@ export const fetchEvents = async (userId, filters) => {
       .join("");
   }
 
+  const token = await SecureStore.getItemAsync("userToken");
+  console.log("C-api-key: ", token)
+
   return await fetch(
     `${API_URL}/events?userId=${userId}&filterOut=true${
       filterString ?? ""

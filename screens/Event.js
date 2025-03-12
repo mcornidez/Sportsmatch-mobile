@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
+  ActivityIndicator, TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import CustomButton from "../components/CustomButton";
@@ -27,6 +27,7 @@ import { fetchReservationsByEvent } from "../services/reservationService";
 import {DateTime} from "luxon";
 import {AuthContext} from "../contexts/authContext";
 import * as SecureStore from "expo-secure-store";
+import { getSports } from "../services/sportService";
 
 const Event = ({ route }) => {
   const { eventId, userImgURL, ownerRating, ownerId } = route.params;
@@ -34,6 +35,7 @@ const Event = ({ route }) => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [eventParticipants, setEventParticipants] = useState(null);
   const [userStatus, setUserStatus] = useState(USER_STATUS.UNENROLLED);
+  const [sports, setSports] = useState([]);
   const [imageURL, setImageURL] = useState(userImgURL);
   const { currUser } = useContext(UserContext);
   const [eventData, setEventData] = useState(null);
@@ -50,7 +52,7 @@ const Event = ({ route }) => {
     fetchReservationsByEvent(eventId)
         .then((reservations) => {
           if (reservations.length > 0) {
-            setReservationData(reservations[0]);
+            setReservationData(reservations[0]); // Tomamos la primera reserva asociada
           }
         })
         .catch((err) => console.error("Error fetching reservation:", err))
@@ -72,18 +74,6 @@ const Event = ({ route }) => {
     }
     */
      }, [eventId, userImgURL, ownerId]);
-
-  const handlePayment = async () => {
-    if (!reservationData) return;
-
-    const token = await SecureStore.getItemAsync("userToken");
-
-    navigation.navigate("NewPayment", {
-      amount: reservationData.cost,
-      reservationId: reservationData.id,
-      apiKey: token,
-    });
-  };
 
   useEffect(() => {
     if (eventData)
@@ -107,6 +97,20 @@ const Event = ({ route }) => {
       setLoading(false);
     }
   }, [eventParticipants]);
+
+  useEffect(() => {
+    const fetchSports = async () => {
+      try {
+        const sportsData = await getSports();
+        setSports(sportsData);
+      } catch (error) {
+        console.error("Error loading sports:", error);
+      }
+    };
+
+    fetchSports();
+  }, []);
+
 
   const handleQuitEvent = async () => {
     setSubmitLoading(true);
@@ -180,12 +184,18 @@ const Event = ({ route }) => {
     }
   };
 
+  const handleReservationDetail = () => {
+    navigation.navigate("ReservationDetail", { reservationData });
+  };
+
   let eventDate = eventData?.schedule
-      ? DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ")
+      ? DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ", { zone: "utc" })
       : null;
 
   const formattedDate = eventDate ? `${eventDate.day} de ${MONTHS[eventDate.month - 1]}` : "-- de --";
   const formattedTime = eventDate ? eventDate.toFormat("HH:mm") : "--:--";
+
+  const sportName = sports.find((s) => s.id === eventData?.sportId)?.name || "Deporte desconocido";
 
   return loading || !eventData ? (
     <ActivityIndicator
@@ -214,8 +224,7 @@ const Event = ({ route }) => {
             </Text>
           </View>
           <Text style={{ ...styles.mediumText, alignSelf: "center" }}>
-            {" "}
-            {SPORT[eventData.sportId - 1]}
+            {sportName}
           </Text>
         </View>
       </View>
@@ -245,30 +254,28 @@ const Event = ({ route }) => {
         </View>
 
         <Divider width={1} />
-        <View style={{ ...styles.bodySection }}>
-          <Text style={styles.bodyBigText}>Descripción:</Text>
-          <View style={{ width: 160 }}>
-            <ScrollView style={{ maxHeight: 110 }}>
-              <Text style={styles.bodyMidText}>
-                {eventData.description == ""
-                  ? "No hay descripcion"
-                  : eventData.description}
-              </Text>
-            </ScrollView>
-          </View>
-        </View>
+        {eventData.description && eventData.description.trim() !== "" && (
+            <>
+              <View style={{ ...styles.bodySection }}>
+                <Text style={styles.bodyBigText}>Descripción:</Text>
+                <View style={{ width: 160 }}>
+                  <ScrollView style={{ maxHeight: 110 }}>
+                    <Text style={styles.bodyMidText}>
+                      {eventData.description}
+                    </Text>
+                  </ScrollView>
+                </View>
+              </View>
+            </>
+        )}
         <Divider width={1} />
         {!ownerId && renderParticipantStatusMessage()}
       </View>
-      {ownerId ? (
-          <View style={{ alignSelf: "stretch" }}>
-            <CustomButton title={"Pagar reserva"} onPress={handlePayment} color={COLORS.primary} />
-          </View>
-      ) : (
-          <View style={{ alignSelf: "stretch" }}>
-            {renderEventButton(submitLoading)}
-          </View>
+      {/* Mostrar botón "Detalle de reserva" SOLO si hay una reserva */}
+      {reservationData && (
+          <CustomButton title={"Detalle de reserva"} onPress={handleReservationDetail} color={COLORS.primary} />
       )}
+
     </View>
   );
 };

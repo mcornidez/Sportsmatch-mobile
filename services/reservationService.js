@@ -59,3 +59,30 @@ export const fetchReservationsByEvent = async (eventId) => {
         return [];
     }
 };
+
+export const cancelReservation = async (reservationId) => {
+    const token = await SecureStore.getItemAsync("userToken");
+
+    if (!token) {
+        throw new Error("No token found, user must log in.");
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/reservations/${reservationId}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "c-api-key": token,
+            },
+        });
+
+        if (response.status === 204) {
+            return true; // Reserva cancelada correctamente
+        } else {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+    } catch (error) {
+        console.error("Error cancelando la reserva:", error);
+        throw error;
+    }
+};

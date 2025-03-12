@@ -35,7 +35,7 @@ const MyEventList = ({ data }) => {
         fetchSports();
     }, []);
 
-    let eventDate = DateTime.fromFormat(data.item.schedule, "yyyy-MM-dd HH:mm:ssZZ");
+    let eventDate = DateTime.fromFormat(data.item.schedule, "yyyy-MM-dd HH:mm:ssZZ", { zone: "utc" });
 
     if (!eventDate.isValid) {
         eventDate = DateTime.invalid("Fecha inválida");
