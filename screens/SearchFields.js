@@ -15,6 +15,7 @@ import { createReservation } from "../services/reservationService";
 import { COLORS, FONTS } from "../constants";
 import { DateTime } from "luxon";
 
+
 const SearchFields = () => {
     const navigation = useNavigation();
     const route = useRoute();
@@ -34,9 +35,15 @@ const SearchFields = () => {
     const fetchFields = async () => {
         setLoading(true);
         setRefreshing(true);
+        setFields([]);
         try {
-            const allFields = await getFields();
-            //const allFields = await getFieldsWithLocation(location);
+            let allFields = [];
+
+            if (location === undefined) {
+                allFields = await getFields();
+            } else {
+                allFields = await getFieldsWithLocation(location);
+            }
 
             if (!Array.isArray(allFields) || allFields.length === 0) {
                 console.warn("⚠️ No se recibieron canchas desde el servidor.");
@@ -50,35 +57,57 @@ const SearchFields = () => {
 
             const uniqueClubIds = [...new Set(filteredFields.map(field => field.club_id))];
 
-            const clubs = await Promise.all(uniqueClubIds.map(clubId => getClubById(clubId)));
+            const clubs = await Promise.all(uniqueClubIds.map(async (clubId) => {
+                try {
+                    const club = await getClubById(clubId);
+                    return club;
+                } catch (error) {
+                    console.error(`❌ Error obteniendo el club ${clubId}:`, error);
+                    return null;
+                }
+            }));
 
-            const clubMap = clubs.reduce((acc, club) => {
-                acc[club.id] = club.name;
+            const validClubs = clubs.filter(club => club !== null);
+
+            const clubMap = validClubs.reduce((acc, club) => {
+                acc[club.id] = {
+                    name: club.name,
+                    location: club.location || "Ubicación no disponible",
+                    address: club.address || "Dirección no disponible",
+                };
                 return acc;
             }, {});
+
 
             let allFieldTimeslots = [];
 
             for (const field of filteredFields) {
-                const availableSlots = await getAvailableTimeslots(field.id, date);
+                try {
+                    const availableSlots = await getAvailableTimeslots(field.id, date);
 
-                if (availableSlots.length > 0) {
-                    const fieldTimeslots = availableSlots.map(slot => {
-                        const startTime = DateTime.fromFormat(slot.start_time, "HH:mm:ss");
-                        const endTime = DateTime.fromFormat(slot.end_time, "HH:mm:ss");
-                        const slotDuration = endTime.diff(startTime, "minutes").minutes;
+                    if (availableSlots.length > 0) {
+                        const fieldTimeslots = availableSlots.map(slot => {
+                            const startTime = DateTime.fromFormat(slot.start_time, "HH:mm:ss");
+                            const endTime = DateTime.fromFormat(slot.end_time, "HH:mm:ss");
+                            const slotDuration = endTime.diff(startTime, "minutes").minutes;
+                            const clubInfo = clubMap[field.club_id] || { name: "Club desconocido", location: "Ubicación no disponible", address: "Dirección no disponible" };
 
-                        return {
-                            ...field,
-                            clubName: clubMap[field.club_id] || "Club desconocido",
-                            slotStart: slot.start_time,
-                            slotEnd: slot.end_time,
-                            slotId: slot.id,
-                            slotDuration: slotDuration,
-                        };
-                    });
+                            return {
+                                ...field,
+                                clubName: clubInfo.name,
+                                clubLocation: clubInfo.location,
+                                clubAddress: clubInfo.address,
+                                slotStart: slot.start_time,
+                                slotEnd: slot.end_time,
+                                slotId: slot.id,
+                                slotDuration: slotDuration,
+                            };
+                        });
 
-                    allFieldTimeslots = [...allFieldTimeslots, ...fieldTimeslots];
+                        allFieldTimeslots = [...allFieldTimeslots, ...fieldTimeslots];
+                    }
+                } catch (error) {
+                    console.error(`❌ Error obteniendo disponibilidad de la cancha ${field.id}:`, error);
                 }
             }
 
@@ -91,10 +120,9 @@ const SearchFields = () => {
                 slot.slotStart === userTime.toFormat("HH:mm:ss") &&
                 slot.slotDuration === exactDuration
             );
-
             sortedSlots = [...sortedSlots, ...exactMatches];
 
-            // 2️⃣ Si no hay exactos, buscar ±2 horas con la misma duración
+            // 2️⃣ Buscar ±2 horas con la misma duración
             const flexibleTimeMatches = allFieldTimeslots.filter(slot => {
                 const slotTime = DateTime.fromFormat(slot.slotStart, "HH:mm:ss");
                 return (
@@ -103,10 +131,9 @@ const SearchFields = () => {
                     !sortedSlots.includes(slot)
                 );
             });
-
             sortedSlots = [...sortedSlots, ...flexibleTimeMatches];
 
-            // 3️⃣ Si sigue sin haber resultados, buscar variando la duración pero manteniendo ±2 horas
+            // 3️⃣ Buscar variando la duración pero manteniendo ±2 horas
             const flexibleDurationMatches = allFieldTimeslots.filter(slot => {
                 const slotTime = DateTime.fromFormat(slot.slotStart, "HH:mm:ss");
                 return (
@@ -114,18 +141,18 @@ const SearchFields = () => {
                     !sortedSlots.includes(slot)
                 );
             });
-
             sortedSlots = [...sortedSlots, ...flexibleDurationMatches];
 
             setFields(sortedSlots);
         } catch (error) {
-            console.error("❌ Error obteniendo canchas:", error);
+            console.error("❌ Error obteniendo canchas fetch fields:", error);
             setFields([]);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
     };
+
 
     const onRefresh = () => {
         fetchFields();
@@ -139,10 +166,12 @@ const SearchFields = () => {
             ]}
             onPress={() =>
                 navigation.navigate("Reserva Cancha", {
-                    eventId: eventId, // 👈 Asegurar que tenga un valor válido
+                    eventId: eventId,
                     fieldId: item.id,
                     slotId: item.slotId,
                     clubName: item.clubName,
+                    clubLocation: item.clubLocation,
+                    clubAddress: item.clubAddress,
                     fieldName: item.name,
                     date,
                     slotStart: item.slotStart,
@@ -177,7 +206,7 @@ const SearchFields = () => {
                 </Text>
 
                 <Text style={[styles.cardSmText, { color: COLORS.white }]}>
-                    {item.location || "Ubicación no disponible"}
+                    {item.clubLocation || "Ubicación no disponible"}
                 </Text>
             </View>
         </TouchableOpacity>

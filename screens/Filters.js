@@ -48,14 +48,23 @@ const FilterModal = ({ navigation }) => {
         loadFilterData();
     }, []);
 
-    const onSubmit = (data) => {
-        navigation.navigate("Inicio", { filters: JSON.stringify(data) });
+    const onSubmit = async (data) => {
         try {
-            AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+            const queryParams = new URLSearchParams();
+
+            if (data.location) queryParams.append("location", data.location);
+            if (data.expertise) queryParams.append("expertise", data.expertise);
+            if (data.date) queryParams.append("date", formatDate(data.date));
+            if (data.schedule.length > 0) queryParams.append("schedule", data.schedule.join(","));
+
+            navigation.navigate("Inicio", { filters: queryParams.toString() });
+
         } catch (error) {
-            console.error('Error saving filter data:', error);
+            console.error('Error guardando los filtros:', error);
         }
-    }
+    };
 
     const closeFilters = () => {
         cleanFilters();

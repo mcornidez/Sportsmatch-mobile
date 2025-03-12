@@ -42,47 +42,48 @@ const HomeStackNavigator = () => {
 };
 
 const HeaderRight = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation(); // Obtener navegación dentro de headerRight
 
     return (
         <View
             style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 5, // 🔥 Espacio reducido para que no se vean tan separados
-                pointerEvents: "box-none",
+                justifyContent: 'center', // 🔹 Centra los iconos en la vista
+                paddingRight: 15,
+                gap: 12, // 🔹 Asegurar espaciado uniforme
             }}
         >
             {/* Botón de Filtros */}
             <Pressable
                 onPress={() => {
-                    console.log("Botón Filtros presionado");
                     navigation.navigate("Filtros");
                 }}
                 style={{
-                    paddingHorizontal: 6, // 🔥 Ajuste de tamaño
-                    paddingVertical: 6,
-                    borderRadius: 6
+                    width: 35,
+                    height: 35,
+                    justifyContent: "center",
+                    alignItems: "center",
                 }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <Ionicons name="options" size={28} color={COLORS.white} />
+                <Ionicons name="options" size={24} color={COLORS.white} />
             </Pressable>
 
             {/* Botón de Agregar Evento */}
             <Pressable
                 onPress={() => {
-                    console.log("Botón + presionado");
                     navigation.navigate("Nuevo Evento");
                 }}
                 style={{
-                    paddingHorizontal: 6, // 🔥 Ajuste de tamaño
-                    paddingVertical: 6,
-                    borderRadius: 6
+                    width: 35,
+                    height: 35,
+                    justifyContent: "center",
+                    alignItems: "center",
                 }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-                <Ionicons name="add" size={28} color={COLORS.white} />
+                <Ionicons name="add" size={30} color={COLORS.white} />
             </Pressable>
         </View>
     );
