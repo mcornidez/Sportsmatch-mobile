@@ -240,3 +240,20 @@ export const removeParticipantAsOwner = async (eventId, userId) => {
     },
   });
 };
+
+export const deleteEvent = async (eventId) => {
+  try {
+    const response = await authenticatedFetch(`/events/${eventId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al eliminar evento: ${response.status}`);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("❌ Error eliminando el evento:", error);
+    throw error;
+  }
+};

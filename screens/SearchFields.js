@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
     View,
     Text,
@@ -6,14 +6,14 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     RefreshControl,
-    StyleSheet
+    StyleSheet,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import {getFields, getAvailableTimeslots, getFieldsWithLocation} from "../services/fieldService";
 import { getClubById } from "../services/clubService";
-import { createReservation } from "../services/reservationService";
-import { COLORS, FONTS } from "../constants";
+import { COLORS } from "../constants";
 import { DateTime } from "luxon";
+import {deleteEvent} from "../services/eventService";
 
 
 const SearchFields = () => {
@@ -46,7 +46,7 @@ const SearchFields = () => {
             }
 
             if (!Array.isArray(allFields) || allFields.length === 0) {
-                console.warn("⚠️ No se recibieron canchas desde el servidor.");
+                console.log("⚠️ No se recibieron canchas desde el servidor.");
                 setFields([]);
                 return;
             }
@@ -157,6 +157,27 @@ const SearchFields = () => {
     const onRefresh = () => {
         fetchFields();
     };
+
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = async (e) => {
+                if (eventId) {
+                    try {
+                        await deleteEvent(eventId);
+                        console.log(`✅ Evento ${eventId} eliminado correctamente.`);
+                    } catch (error) {
+                        console.error(`❌ Error al eliminar el evento ${eventId}:`, error);
+                    }
+                }
+
+                navigation.navigate("Nuevo Evento", { returnedFromSearchFields: true });
+            };
+
+            const unsubscribe = navigation.addListener("beforeRemove", onBackPress);
+
+            return () => unsubscribe();
+        }, [navigation, eventId])
+    );
 
     const renderItem = ({ item }) => (
         <TouchableOpacity

@@ -51,7 +51,7 @@ export const getFieldsWithLocation = async (location) => {
         const clubs = await clubsResponse.json();
 
         if (!Array.isArray(clubs) || clubs.length === 0) {
-            console.warn("⚠️ No se encontraron clubes en esta ubicación.");
+            console.log("⚠️ No se encontraron clubes en esta ubicación.");
             return [];
         }
 
