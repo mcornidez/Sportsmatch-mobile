@@ -35,7 +35,7 @@ const showTimepicker = (field) => {
 const getDateComponents = (date) => {
     const parsedDate = new Date(date);
     const day = parsedDate.getDate();
-    const month = parsedDate.getMonth() + 1; // Months are zero-based
+    const month = parsedDate.getMonth() + 1;
     const hours = parsedDate.getHours() + 3;
     const minutes = String(parsedDate.getMinutes()).padStart(2, "0")
 

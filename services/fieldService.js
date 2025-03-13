@@ -78,7 +78,7 @@ export const getFieldsWithLocation = async (location) => {
         );
 
         const fieldsResponses = await Promise.all(fieldsRequests);
-        const allFields = fieldsResponses.flat(); // Aplanar el array
+        const allFields = fieldsResponses.flat();
 
 
         return allFields;

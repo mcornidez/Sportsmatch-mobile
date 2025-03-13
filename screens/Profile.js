@@ -14,9 +14,27 @@ import { SPORT } from "../constants/data";
 import DefaultProfile from "../assets/default-profile.png";
 import { NoContentMessage } from "../components/NoContentMessage";
 import { UserContext } from "../contexts/UserContext";
+import {fetchUserImage} from "../services/userService";
 
 const Profile = () => {
   const { currUser } = useContext(UserContext);
+  const [imageURL, setImageURL] = useState(currUser?.imageURL || DefaultProfile);
+  const [loadingImage, setLoadingImage] = useState(false);
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const response = await fetchUserImage(currUser.id);
+        if (response.presignedGetUrl) {
+          setImageURL(response.presignedGetUrl);
+        }
+      } catch (error) {
+        console.error("Error obteniendo imagen del usuario:", error);
+      }
+    };
+
+    fetchImage();
+  }, [currUser.id]);
 
   const formatPhoneNumber = (phoneNumberString) => {
     if (!phoneNumberString) return;

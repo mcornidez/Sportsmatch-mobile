@@ -17,7 +17,7 @@ export const createReservation = async ({ eventId, fieldId, slotId }) => {
             },
             body: JSON.stringify({
                 fieldId,
-                slotIds: [slotId] // 👈 Asegurar que sea un array
+                slotIds: [slotId]
             }),
         });
 
@@ -49,16 +49,27 @@ export const fetchReservationsByEvent = async (eventId) => {
             },
         });
 
-        if (!response.ok) {
-            throw new Error("Error al obtener la reserva");
+        if (response.status === 403) {
+            return [];
         }
 
-        return await response.json();
+        if (response.status === 404) {
+            return [];
+        }
+
+        if (!response.ok) {
+            throw new Error(`Error inesperado: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
     } catch (error) {
-        console.error("Error obteniendo la reserva:", error);
+        console.error("❌ Error obteniendo la reserva:", error);
         return [];
     }
 };
+
+
 
 export const cancelReservation = async (reservationId) => {
     const token = await SecureStore.getItemAsync("userToken");
@@ -77,7 +88,7 @@ export const cancelReservation = async (reservationId) => {
         });
 
         if (response.status === 204) {
-            return true; // Reserva cancelada correctamente
+            return true;
         } else {
             throw new Error(`Error HTTP: ${response.status}`);
         }

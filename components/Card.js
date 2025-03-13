@@ -44,7 +44,7 @@ const Card = ({ props }) => {
   }, []);
 
   let eventDate = DateTime.fromFormat(props.schedule,
-      "yyyy-MM-dd HH:mm:ssZZ"
+      "yyyy-MM-dd HH:mm:ssZZ", { zone: "utc" }
   );
   const formattedDate = eventDate.toFormat("dd/MM");
   const formattedTime = eventDate.toFormat("HH:mm");
@@ -74,7 +74,6 @@ const Card = ({ props }) => {
   };
   const { day, month, hours, minutes } = getDateComponents(props?.schedule);
 
-  /*
   useEffect(() => {
 
     const fetchImage = async () => {
@@ -93,7 +92,6 @@ const Card = ({ props }) => {
       console.error("ERROR fetching user data", err);
     }
   }, []);
-      */
 
   const sport = sports.find((s) => s.id === props.sportId)?.name || "Deporte desconocido";
 

@@ -4,7 +4,6 @@ import { COLORS } from "../constants";
 import { EVENT_STATUS } from "../constants/data";
 
 const EventStatus = ({ status }) => {
-    // Define styles based on the status code
     const getStatusStyle = () => {
         switch (status) {
             case EVENT_STATUS.RECRUITING: 
@@ -18,7 +17,6 @@ const EventStatus = ({ status }) => {
         }
     };
 
-    // Define status text based on the status code
     const getStatusText = () => {
         switch (status) {
             case EVENT_STATUS.RECRUITING:
@@ -47,16 +45,16 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     recruiting: {
-        backgroundColor: COLORS.secondary, // Yellow with 50% transparency
+        backgroundColor: COLORS.secondary,
     },
     inProgress: {
-        backgroundColor: "rgba(42, 222, 130, 0.8)", // Green with 50% transparency
+        backgroundColor: "rgba(42, 222, 130, 0.8)",
     },
     finalized: {
-        backgroundColor: "rgba(255, 0, 0, 1 )", // Red with 50% transparency
+        backgroundColor: "rgba(255, 0, 0, 1 )",
     },
     default: {
-        backgroundColor: "rgba(128, 128, 128, 0.5)", // Gray with 50% transparency
+        backgroundColor: "rgba(128, 128, 128, 0.5)",
     },
 });
 

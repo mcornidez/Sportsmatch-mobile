@@ -42,19 +42,18 @@ const HomeStackNavigator = () => {
 };
 
 const HeaderRight = () => {
-    const navigation = useNavigation(); // Obtener navegación dentro de headerRight
+    const navigation = useNavigation();
 
     return (
         <View
             style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center', // 🔹 Centra los iconos en la vista
+                justifyContent: 'center',
                 paddingRight: 15,
-                gap: 12, // 🔹 Asegurar espaciado uniforme
+                gap: 12,
             }}
         >
-            {/* Botón de Filtros */}
             <Pressable
                 onPress={() => {
                     navigation.navigate("Filtros");
@@ -70,7 +69,6 @@ const HeaderRight = () => {
                 <Ionicons name="options" size={24} color={COLORS.white} />
             </Pressable>
 
-            {/* Botón de Agregar Evento */}
             <Pressable
                 onPress={() => {
                     navigation.navigate("Nuevo Evento");

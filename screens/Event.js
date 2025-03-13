@@ -44,20 +44,29 @@ const Event = ({ route }) => {
   const navigation = useNavigation();
 
   useEffect(() => {
+    const fetchReservation = async () => {
+      try {
+        const reservations = await fetchReservationsByEvent(eventId);
+        if (reservations.length > 0) {
+          setReservationData(reservations[0]); // ✅ Se espera la promesa antes de asignar
+        } else {
+          setReservationData(null); // ✅ Se maneja correctamente el caso sin reservas
+        }
+      } catch (error) {
+        console.error("❌ Error obteniendo la reserva:", error);
+      }
+    };
+
+    fetchReservation();
+  }, [eventId]);
+
+
+  useEffect(() => {
     setLoading(true);
     fetchEventById(eventId).then((data) => {
       setEventData(data);
     });
 
-    fetchReservationsByEvent(eventId)
-        .then((reservations) => {
-          if (reservations.length > 0) {
-            setReservationData(reservations[0]); // Tomamos la primera reserva asociada
-          }
-        })
-        .catch((err) => console.error("Error fetching reservation:", err))
-        .finally(() => setLoading(false));
-    /*
     if (!route.params.userImgURL) {
       const fetchImage = async () => {
         const response = await fetchUserImage(ownerId);
@@ -72,8 +81,7 @@ const Event = ({ route }) => {
         console.error("ERROR fetching user data", err);
       }
     }
-    */
-     }, [eventId, userImgURL, ownerId]);
+    }, [eventId, userImgURL, ownerId]);
 
   useEffect(() => {
     if (eventData)
@@ -161,25 +169,28 @@ const Event = ({ route }) => {
   };
 
   const renderEventButton = (loading) => {
+    if (!eventData || !currUser) return null;
     if (eventData.status === EVENT_STATUS.FINALIZED) return null;
+    if (eventData.owner?.id.toString() === currUser.id.toString()) return null;
+
     switch (userStatus) {
       case USER_STATUS.UNENROLLED:
         return (
-          <CustomButton
-            title={"Anotarme"}
-            onPress={joinEvent}
-            isLoading={loading}
-          />
+            <CustomButton
+                title={"Anotarme"}
+                onPress={joinEvent}
+                isLoading={loading}
+            />
         );
       case USER_STATUS.REQUESTING:
       case USER_STATUS.ENROLLED:
         return (
-          <CustomButton
-            title={"Desanotarme"}
-            color={"red"}
-            onPress={handleQuitEvent}
-            isLoading={loading}
-          />
+            <CustomButton
+                title={"Desanotarme"}
+                color={"red"}
+                onPress={handleQuitEvent}
+                isLoading={loading}
+            />
         );
     }
   };
@@ -196,6 +207,8 @@ const Event = ({ route }) => {
   const formattedTime = eventDate ? eventDate.toFormat("HH:mm") : "--:--";
 
   const sportName = sports.find((s) => s.id === eventData?.sportId)?.name || "Deporte desconocido";
+
+  {renderEventButton()}
 
   return loading || !eventData ? (
     <ActivityIndicator
@@ -270,8 +283,10 @@ const Event = ({ route }) => {
         )}
         <Divider width={1} />
         {!ownerId && renderParticipantStatusMessage()}
+
+        {/* 🔹 Ahora el botón se muestra aquí */}
+        {eventData && renderEventButton()}
       </View>
-      {/* Mostrar botón "Detalle de reserva" SOLO si hay una reserva */}
       {reservationData && (
           <CustomButton title={"Detalle de reserva"} onPress={handleReservationDetail} color={COLORS.primary} />
       )}

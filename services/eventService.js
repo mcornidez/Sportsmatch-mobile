@@ -128,7 +128,7 @@ export const fetchNearEvents = async (userId, filters = undefined) => {
     const response = await fetchEvents(userId, filters);
     if (!response.ok) {
       console.error("❌ Error en fetchNearEvents: HTTP", response.status);
-      return { items: [] };  // Retorna un array vacío en caso de error
+      return { items: [] };
     }
 
     let jsonRes;
@@ -166,10 +166,10 @@ export const publishEvent = async (eventData) => {
       return null;
     }
 
-    const jsonResponse = await response.json();  // 🔹 Procesa la respuesta
+    const jsonResponse = await response.json();
     console.log("✅ Evento creado correctamente:", jsonResponse);
 
-    return jsonResponse;  // 🔹 Retorna la respuesta para obtener eventId
+    return jsonResponse;
   } catch (error) {
     console.error("❌ Error al publicar el evento:", error);
     return null;
@@ -205,7 +205,7 @@ export const acceptParticipant = async (eventId, userId) => {
     },
   });
 };
-//Endpoint should be /rating for it to be RESTful
+
 export const rateUser = async (eventId, rating, participantId) => {
   console.log("RATING USER: " + participantId + " WITH RATING: " + rating + " FOR EVENT: " + eventId);
   await authenticatedFetch(`/users/${participantId}/rating`, {

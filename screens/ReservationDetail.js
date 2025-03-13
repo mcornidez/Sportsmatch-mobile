@@ -57,7 +57,6 @@ const ReservationDetail = () => {
         const fetchPaymentStatus = async () => {
             try {
                 const payments = await getPaymentsByReservationId(reservationData.id);
-                console.log("📌 Pagos obtenidos:", payments); // 🔍 Verifica qué devuelve la API
 
                 if (Array.isArray(payments) && payments.length === 0) {
                     setPaymentStatus("Pendiente");

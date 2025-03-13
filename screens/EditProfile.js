@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard, Alert
 } from "react-native";
 import { useState, useEffect, useContext } from "react";
 import { COLORS, FONTS } from "../constants";
@@ -183,39 +183,98 @@ const EditProfile = () => {
     );
   };
 
-  const handleCameraLaunch = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true,
-    });
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      }
+    };
+    checkPermissions();
+  }, []);
 
-    if (!result.canceled) {
-      setCurrImg({
-        uri: result.assets[0].uri,
-        base64: result.assets[0].base64,
+
+  const requestPermissions = async () => {
+    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status: galleryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (cameraStatus !== "granted" || galleryStatus !== "granted") {
+      Alert.alert(
+          "Permiso requerido",
+          "Necesitas habilitar el acceso a la cámara y galería en la configuración del dispositivo."
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleCameraLaunch = async () => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    console.log("Abriendo cámara...");
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+        base64: true,
       });
+
+      console.log("Resultado de la captura:", result);
+
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        console.log("Captura cancelada.");
+        return;
+      }
+
+      const capturedImage = result.assets[0];
+      console.log("Imagen capturada:", capturedImage.uri);
+
+      setCurrImg({ uri: capturedImage.uri });
       setImageChanged(true);
+
+      console.log("Estado actualizado correctamente.");
+    } catch (error) {
+      console.error("Error tomando foto:", error);
     }
   };
 
-  const handleLibraryLaunch = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0,
-      base64: true,
-    });
 
-    if (!result.canceled) {
-      setCurrImg({
-        uri: result.assets[0].uri,
-        base64: result.assets[0].base64,
+  const handleLibraryLaunch = async () => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    console.log("Abriendo galería...");
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5,
+        base64: true,
       });
+
+      console.log("Resultado de la selección:", result);
+
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        console.log("Selección cancelada o sin imágenes.");
+        return;
+      }
+
+      const selectedImage = result.assets[0];
+      console.log("Imagen seleccionada:", selectedImage.uri);
+
+      setCurrImg({ uri: selectedImage.uri });
       setImageChanged(true);
+
+      console.log("Estado actualizado correctamente.");
+    } catch (error) {
+      console.error("Error seleccionando imagen:", error);
     }
   };
 

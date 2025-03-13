@@ -23,11 +23,6 @@ const FieldReservation = () => {
     const handleReservation = async () => {
         setLoading(true);
         try {
-            console.log("📡 Enviando reserva con los siguientes datos:");
-            console.log("Event ID:", eventId);
-            console.log("Field ID:", fieldId);
-            console.log("Slot ID:", slotId); // Verifica que el slot ID sea correcto
-
             await createReservation({ eventId, fieldId, slotId });
 
             Alert.alert("Reserva solicitada", "Tu reserva ha sido solicitada con éxito.", [
