@@ -47,18 +47,20 @@ const Event = ({ route }) => {
     const fetchReservation = async () => {
       try {
         const reservations = await fetchReservationsByEvent(eventId);
-        if (reservations.length > 0) {
-          setReservationData(reservations[0]); // ✅ Se espera la promesa antes de asignar
+        if (Array.isArray(reservations) && reservations.length > 0) {
+          setReservationData(reservations[0]);
         } else {
-          setReservationData(null); // ✅ Se maneja correctamente el caso sin reservas
+          setReservationData(null);
         }
       } catch (error) {
         console.error("❌ Error obteniendo la reserva:", error);
+        setReservationData(null);
       }
     };
 
     fetchReservation();
   }, [eventId]);
+
 
 
   useEffect(() => {
@@ -134,7 +136,6 @@ const Event = ({ route }) => {
 
   const joinEvent = async () => {
     setSubmitLoading(true);
-    console.log("Joining event", currUser);
     try {
       await joinNewEvent(eventId, currUser.id);
 
@@ -169,31 +170,69 @@ const Event = ({ route }) => {
   };
 
   const renderEventButton = (loading) => {
-    if (!eventData || !currUser) return null;
-    if (eventData.status === EVENT_STATUS.FINALIZED) return null;
-    if (eventData.owner?.id.toString() === currUser.id.toString()) return null;
 
-    switch (userStatus) {
-      case USER_STATUS.UNENROLLED:
-        return (
-            <CustomButton
-                title={"Anotarme"}
-                onPress={joinEvent}
-                isLoading={loading}
-            />
-        );
-      case USER_STATUS.REQUESTING:
-      case USER_STATUS.ENROLLED:
-        return (
-            <CustomButton
-                title={"Desanotarme"}
-                color={"red"}
-                onPress={handleQuitEvent}
-                isLoading={loading}
-            />
-        );
+    if (!eventData || !currUser) {
+      return null;
     }
+
+    if (eventData.status === EVENT_STATUS.FINALIZED) {
+      return null;
+    }
+
+    const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
+    const isReservationCancelled = reservationData?.status === "cancelled";
+
+    return (
+        <>
+          {isOwner && (!reservationData || isReservationCancelled) && (
+              <CustomButton
+                  title={"Buscar Cancha"}
+                  onPress={() =>
+                      navigation.navigate("Buscar Canchas", {
+                        eventId: eventId,
+                        sportId: eventData.sportId,
+                        location: eventData.location,
+                        date: formattedDate,
+                        time: formattedTime,
+                        duration: eventData.duration,
+                        origin: "Event"
+                      })
+                  }
+                  color={COLORS.primary}
+              />
+          )}
+
+          {!isOwner && reservationData && (
+              <>
+                <Text style={{ fontSize: 16, fontWeight: "bold", marginBottom: 8 }}>Reserva disponible:</Text>
+                <CustomButton
+                    title={"Detalle de reserva"}
+                    onPress={handleReservationDetail}
+                    color={COLORS.primary}
+                />
+              </>
+          )}
+          {!isOwner && (
+              userStatus === USER_STATUS.UNENROLLED ? (
+                  <CustomButton
+                      title={"Anotarme"}
+                      onPress={joinEvent}
+                      isLoading={loading}
+                  />
+              ) : (
+                  <CustomButton
+                      title={"Desanotarme"}
+                      color={"red"}
+                      onPress={handleQuitEvent}
+                      isLoading={loading}
+                  />
+              )
+          )}
+
+        </>
+    );
   };
+
 
   const handleReservationDetail = () => {
     navigation.navigate("ReservationDetail", { reservationData });

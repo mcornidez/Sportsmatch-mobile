@@ -20,7 +20,6 @@ import { fetchUserImage } from "../services/userService";
 import CustomButton from "./CustomButton";
 
 const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) => {
-  console.log("Props my event card: ", props);
   const [userAccepted, setUserAccepted] = useState(
     props.participantStatus
   );
@@ -30,7 +29,6 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
   const [isRated, setIsRated] = useState(props.isRated);
 
   useEffect(() => {
-    /*
     const fetchImage = async () => {
       const response = await fetchUserImage(props.userId);
       if (response === undefined)
@@ -39,7 +37,6 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
         setImage(response.imageURL);
       }
     };
-    */
     try {
       fetchImage();
     } catch (err) {

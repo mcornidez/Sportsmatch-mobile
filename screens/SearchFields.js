@@ -46,7 +46,6 @@ const SearchFields = () => {
             }
 
             if (!Array.isArray(allFields) || allFields.length === 0) {
-                console.log("⚠️ No se recibieron canchas desde el servidor.");
                 setFields([]);
                 return;
             }
@@ -161,16 +160,19 @@ const SearchFields = () => {
     useFocusEffect(
         useCallback(() => {
             const onBackPress = async (e) => {
-                if (eventId) {
-                    try {
-                        await deleteEvent(eventId);
-                        console.log(`✅ Evento ${eventId} eliminado correctamente.`);
-                    } catch (error) {
-                        console.error(`❌ Error al eliminar el evento ${eventId}:`, error);
+                if (route.params?.origin === "NewEvent") {
+                    if (eventId) {
+                        try {
+                            await deleteEvent(eventId);
+                            console.log(`✅ Evento ${eventId} eliminado correctamente.`);
+                        } catch (error) {
+                            console.error(`❌ Error al eliminar el evento ${eventId}:`, error);
+                        }
                     }
+                    navigation.navigate("Nuevo Evento", { returnedFromSearchFields: true });
+                } else {
+                    navigation.navigate("Evento-MisEventos", { eventId });
                 }
-
-                navigation.navigate("Nuevo Evento", { returnedFromSearchFields: true });
             };
 
             const unsubscribe = navigation.addListener("beforeRemove", onBackPress);

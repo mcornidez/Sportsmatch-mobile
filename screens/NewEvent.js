@@ -128,7 +128,8 @@ const NewEvent = () => {
           location: data.location,
           date: formatDate(formData.date),
           time: formatTime(formData.time),
-          duration: formData.duration
+          duration: formData.duration,
+          origin: "NewEvent"
         });
       }
 
