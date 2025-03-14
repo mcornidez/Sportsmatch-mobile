@@ -4,7 +4,9 @@ import {
     Text,
     StyleSheet,
     ScrollView,
-    TouchableOpacity, ActivityIndicator
+    TouchableOpacity,
+    ActivityIndicator,
+    Alert
 } from "react-native";
 import {useNavigation, useRoute} from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -90,22 +92,31 @@ const ReservationDetail = () => {
     };
 
     const handleCancelReservation = async () => {
+        console.log("🛑 Iniciando proceso de cancelación de reserva...");
+
         Alert.alert(
             "Confirmar cancelación",
             "¿Estás seguro de que deseas cancelar esta reserva?",
             [
-                { text: "No", style: "cancel" },
+                { text: "No", style: "cancel", onPress: () => console.log("🚫 Cancelación abortada por el usuario") },
                 {
                     text: "Sí, cancelar",
                     onPress: async () => {
+                        console.log("✅ Usuario confirmó la cancelación. Procediendo...");
                         setLoadingCancel(true);
+
                         try {
-                            await cancelReservation(reservationId);
+                            console.log(`📡 Enviando solicitud para cancelar la reserva con ID: ${reservationData.id}`);
+                            await cancelReservation(reservationData.id);
+                            console.log("✅ Reserva cancelada con éxito.");
+
                             Alert.alert("Reserva cancelada", "La reserva ha sido cancelada exitosamente.");
                             navigation.goBack();
                         } catch (error) {
+                            console.error("❌ Error al cancelar la reserva:", error);
                             Alert.alert("Error", "No se pudo cancelar la reserva. Inténtalo nuevamente.");
                         } finally {
+                            console.log("🔄 Finalizando proceso de cancelación.");
                             setLoadingCancel(false);
                         }
                     },
@@ -113,6 +124,7 @@ const ReservationDetail = () => {
             ]
         );
     };
+
 
 
     // Formatear fecha y hora de la reserva
@@ -166,7 +178,7 @@ const ReservationDetail = () => {
                 ]}>
                     {status === "confirmed" ? "Confirmada" :
                         status === "pending" ? "Pendiente" :
-                            status === "completed" ? "Completada" :
+                            status === "completed" ? "Señada" :
                                 "Cancelada"}
                 </Text>
 
@@ -191,28 +203,35 @@ const ReservationDetail = () => {
                         )}
 
                         <View style={styles.buttonContainer}>
-                            {paymentStatus !== "approved" && (
-                                <CustomButton
-                                    title={`Pagar seña ($${(cost / 2).toFixed(0)})`}
-                                    onPress={handlePayment}
-                                    color={COLORS.primary}
-                                    style={styles.actionButton}
-                                />
+                            {paymentStatus !== "approved" && status === "confirmed" && (
+                                <>
+                                    <Text style={styles.noteText}>
+                                        Recordá que tenés hasta 24hs antes de la reserva para pagar la seña.
+                                        Caso contrario, el club puede cancelar la reserva.
+                                    </Text>
+                                    <CustomButton
+                                        title={`Pagar seña ($${(cost / 2).toFixed(0)})`}
+                                        onPress={handlePayment}
+                                        color={COLORS.primary}
+                                        style={styles.actionButton}
+                                    />
+                                </>
                             )}
 
                             {status !== "cancelled" && (
-                                <CustomButton
-                                    title={"Cancelar reserva"}
-                                    onPress={() => console.log("Cancelar reserva")}
-                                    color={"red"}
-                                    style={styles.cancelButton}
-                                />
+                                <>
+                                    <CustomButton
+                                        title={"Cancelar reserva"}
+                                        onPress={handleCancelReservation}
+                                        color={"red"}
+                                        style={styles.cancelButton}
+                                    />
+                                    <Text style={styles.noteText}>
+                                        Recordá que si cancelas con 24hs de anticipación, se te devolverá la seña.
+                                    </Text>
+                                </>
                             )}
                         </View>
-
-                        <Text style={styles.noteText}>
-                            Recordá que si cancelas con 24hs de anticipación, se te devolverá la seña.
-                        </Text>
                     </>
                 )}
             </View>

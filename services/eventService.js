@@ -52,7 +52,6 @@ export const authenticatedFetch = async (url, options = {}) => {
     }
     return response;
   } catch (err) {
-    console.log("ERROR: ", err);
     return { failed: true, message: err.message };
   }
 };
@@ -77,33 +76,63 @@ export const fetchParticipants = async (eventId, status) => {
 
 //TODO: clean this code
 export const fetchEvents = async (userId, filters) => {
-  let filterString;
+  let filterString = "";
+
   if (filters !== undefined) {
     if (filters.date !== "") filters.date = filters.date.split("T")[0];
     else delete filters.date;
+
     if (filters.expertise !== "")
       filters.expertise = EXPERTISE.indexOf(filters.expertise) + 1;
     else delete filters.expertise;
+
     if (!filters.schedule || filters.schedule.length === 0)
       delete filters.schedule;
-    if(filters.location === "") delete filters.location;
+
+    if (filters.location === "") delete filters.location;
+
     filterString = Object.entries(filters)
-      .map(([key, value]) => {
-        console.log("KEY: " + key + " VALUE: " + value);
-        return "&" + key + "=" + value;
-      })
-      .join("");
+        .map(([key, value]) => `&${key}=${value}`)
+        .join("");
+
+    console.log("📡 Parámetros de filtro formateados:", filterString);
   }
 
   const token = await SecureStore.getItemAsync("userToken");
-  console.log("C-api-key: ", token)
+  console.log("🔑 Token obtenido para fetchEvents:", token);
 
-  return await fetch(
-    `${API_URL}/events?userId=${userId}&filterOut=true${
-      filterString ?? ""
-    }&limit=200`
-  );
+  try {
+    console.log("📡 Realizando petición a:", `${API_URL}/events?userId=${userId}&filterOut=true${filterString}&limit=200`);
+
+    const response = await fetch(
+        `${API_URL}/events?userId=${userId}&filterOut=true${filterString}&limit=200`,
+        {
+          method: "GET",
+          headers: {
+            "C-api-key": token,
+            "Content-Type": "application/json",
+          },
+        }
+    );
+
+    console.log("📡 Respuesta recibida con código:", response.status);
+
+    if (!response.ok) {
+      // Si la respuesta no es exitosa, imprimimos el texto para analizar el error
+      const errorText = await response.text();
+      console.error("❌ Error en fetchEvents:", response.status, errorText);
+      return { items: [] };
+    }
+
+    const jsonResponse = await response.json();
+    console.log("✅ JSON parseado correctamente:", jsonResponse);
+    return jsonResponse;
+  } catch (error) {
+    console.error("❌ Error en fetchEvents:", error);
+    return { items: [] };
+  }
 };
+
 
 export const fetchJoinedEvents = async (userId) => {
   const response = await fetch(`${API_URL}/events?participantId=${userId}`);
@@ -123,31 +152,28 @@ export const fetchMyEvents = async (userId) => {
 
 export const fetchNearEvents = async (userId, filters = undefined) => {
   try {
+    console.log("📡 Llamando a fetchEvents con userId:", userId, "y filtros:", filters);
 
     const response = await fetchEvents(userId, filters);
-    if (!response.ok) {
-      console.error("❌ Error en fetchNearEvents: HTTP", response.status);
+
+    if (!response || !response.items) {
+      console.error("❌ Respuesta inválida en fetchNearEvents:", response);
       return { items: [] };
     }
 
-    let jsonRes;
-    try {
-      jsonRes = await response.json();
-    } catch (error) {
-      console.error("❌ Error parseando JSON en fetchNearEvents:", error);
-      return [];
-    }
-
-    jsonRes.items = jsonRes.items?.filter(
+    response.items = response.items?.filter(
         (event) => event.remaining > 0 && event.eventStatus !== EVENT_STATUS.FINALIZED
     );
 
-    return jsonRes;
+    console.log("✅ Eventos después de filtrar:", response.items.length);
+    return response;
   } catch (err) {
     console.error("🚨 Error en fetchNearEvents:", err);
     return { items: [] };
   }
 };
+
+
 
 
 export const publishEvent = async (eventData) => {

@@ -50,6 +50,7 @@ const FilterModal = ({ navigation }) => {
 
     const onSubmit = async (data) => {
         try {
+            console.log("📡 Guardando filtros en AsyncStorage:", data);
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
             const queryParams = new URLSearchParams();
@@ -57,12 +58,17 @@ const FilterModal = ({ navigation }) => {
             if (data.location) queryParams.append("location", data.location);
             if (data.expertise) queryParams.append("expertise", data.expertise);
             if (data.date) queryParams.append("date", formatDate(data.date));
-            if (data.schedule.length > 0) queryParams.append("schedule", data.schedule.join(","));
 
+            if (data.schedule.length > 0) {
+                const selectedSchedules = data.schedule.map(index => HORARIOS[index]);
+                queryParams.append("schedule", selectedSchedules.join(","));
+            }
+
+            console.log("🔍 Filtros enviados a Home:", queryParams.toString());
             navigation.navigate("Inicio", { filters: queryParams.toString() });
 
         } catch (error) {
-            console.error('Error guardando los filtros:', error);
+            console.error('❌ Error guardando los filtros:', error);
         }
     };
 
@@ -77,11 +83,13 @@ const FilterModal = ({ navigation }) => {
         AsyncStorage.removeItem(STORAGE_KEY);
     }
 
-    const toggleChipSelection = async (index, selectedChips, onChange) => {
-        const isSelected = selectedChips.includes(index);
+    const toggleChipSelection = async (selectedValue, selectedChips, onChange) => {
+        const isSelected = selectedChips.includes(selectedValue);
         const newSelectedChips = isSelected
-            ? selectedChips.filter((chipIdx) => chipIdx !== index)
-            : [...selectedChips, index];
+            ? selectedChips.filter((chip) => chip !== selectedValue)
+            : [...selectedChips, selectedValue];
+
+        console.log("📌 Horarios seleccionados:", newSelectedChips);
         onChange(newSelectedChips);
     };
 
@@ -154,19 +162,29 @@ const FilterModal = ({ navigation }) => {
                         <View>
                             <Text style={styles.sectionTitle}>Horario:</Text>
                             <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'center', marginVertical: 8, paddingVertical: 14 }}>
-                                <Controller control={control} rules={{ required: false }} defaultValue={[]} render={({ field }) =>
-                                (
-                                    HORARIOS.map((horario, idx) => {
-                                        const isSelected = field.value.includes(idx)
-                                        return (
-                                            <Chip title={horario} buttonStyle={{ borderColor: COLORS.primary, borderWidth: 1 }}
-                                                titleStyle={{ color: !isSelected ? COLORS.primary : COLORS.white }} key={idx} color={COLORS.primary}
-                                                type={isSelected ? 'solid' : 'outline'} onPress={() => toggleChipSelection(idx, field.value, field.onChange)} />
-                                        )
-                                    })
-                                )
-                                }
-                                    name="schedule" />
+                                <Controller
+                                    control={control}
+                                    rules={{ required: false }}
+                                    defaultValue={[]}
+                                    render={({ field }) => (
+                                        HORARIOS.map((horario, idx) => {
+                                            const isSelected = field.value.includes(horario);
+                                            return (
+                                                <Chip
+                                                    title={horario}
+                                                    key={idx}
+                                                    buttonStyle={{ borderColor: COLORS.primary, borderWidth: 1 }}
+                                                    titleStyle={{ color: !isSelected ? COLORS.primary : COLORS.white }}
+                                                    color={COLORS.primary}
+                                                    type={isSelected ? 'solid' : 'outline'}
+                                                    onPress={() => toggleChipSelection(horario, field.value, field.onChange)}
+                                                />
+                                            );
+                                        })
+                                    )}
+                                    name="schedule"
+                                />
+
                             </View>
 
                         </View>

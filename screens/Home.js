@@ -31,28 +31,39 @@ const Home = ({ navigation, route }) => {
       return;
     }
 
+    console.log("📡 Cargando eventos para el usuario:", currUser.id);
+
     setLoading(true);
     try {
+      console.log("📊 Filtros recibidos:", route.params?.filters);
       const filters = route.params?.filters ? JSON.parse(route.params.filters) : undefined;
 
+      console.log("📡 Ejecutando fetchNearEvents con filtros:", filters);
       const data = await fetchNearEvents(currUser.id, filters);
 
       if (!data || !data.items) {
-        console.error("❌ Error: Respuesta de fetchNearEvents no válida:", data);
+        console.error("❌ Respuesta inválida de fetchNearEvents:", data);
         setEventsList([]);
         setFilteredEventList([]);
       } else {
+        console.log("✅ Eventos cargados correctamente:", data.items.length, "eventos");
         setEventsList(data.items);
         setFilteredEventList(data.items);
       }
     } catch (error) {
-      console.error("Error loading events:", error);
+      console.error("❌ Error en loadEvents:", error);
     }
     setLoading(false);
   };
 
+  useEffect(() => {
+    console.log("🔄 useEffect activado. Cargando eventos...");
+    loadEvents();
+  }, [route.params?.filters]);
+
   useFocusEffect(
       useCallback(() => {
+        console.log("🔄 useFocusEffect: Re-cargando eventos...");
         loadEvents();
       }, [currUser, route.params?.filters])
   );
@@ -139,12 +150,14 @@ const Home = ({ navigation, route }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    console.log("🔄 Refrescando eventos...");
     try {
       const jsonData = await fetchNearEvents(currUser.id);
+      console.log("✅ Eventos refrescados:", jsonData.items.length);
       setEventsList(jsonData.items);
       setFilteredEventList(jsonData.items);
     } catch (error) {
-      console.error(error);
+      console.error("❌ Error al refrescar eventos:", error);
     }
     setRefreshing(false);
   };
