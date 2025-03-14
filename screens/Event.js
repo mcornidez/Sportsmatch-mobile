@@ -108,6 +108,7 @@ const Event = ({ route }) => {
     }
   }, [eventParticipants]);
 
+
   useEffect(() => {
     const fetchSports = async () => {
       try {
@@ -202,16 +203,6 @@ const Event = ({ route }) => {
               />
           )}
 
-          {!isOwner && reservationData && (
-              <>
-                <Text style={{ fontSize: 16, fontWeight: "bold", marginBottom: 8 }}>Reserva disponible:</Text>
-                <CustomButton
-                    title={"Detalle de reserva"}
-                    onPress={handleReservationDetail}
-                    color={COLORS.primary}
-                />
-              </>
-          )}
           {!isOwner && (
               userStatus === USER_STATUS.UNENROLLED ? (
                   <CustomButton
@@ -235,7 +226,9 @@ const Event = ({ route }) => {
 
 
   const handleReservationDetail = () => {
-    navigation.navigate("ReservationDetail", { reservationData });
+    const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
+
+    navigation.navigate("ReservationDetail", { reservationData, isOwner });
   };
 
   let eventDate = eventData?.schedule

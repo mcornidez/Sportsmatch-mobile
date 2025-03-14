@@ -22,7 +22,6 @@ export const authenticatedFetch = async (url, options = {}) => {
     };
 
     const response = await fetch(`${API_URL}${url}`, { ...options, headers });
-    console.log(`Response for ${url} :`, response.status);
     if (response.status >= 400 && response.status < 600) {
       const body = await response.json();
       if (response.status === 401 && body.error === "Expired token.") {

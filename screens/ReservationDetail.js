@@ -15,11 +15,12 @@ import { getPaymentsByReservationId } from "../services/paymentsService";
 import { cancelReservation } from "../services/reservationService";
 import CustomButton from "../components/CustomButton";
 import * as SecureStore from "expo-secure-store";
+import { UserContext } from "../contexts/UserContext";
 
 const ReservationDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { reservationData } = route.params;
+    const { reservationData, isOwner } = route.params;
 
     if (!reservationData) {
         return (
@@ -54,24 +55,26 @@ const ReservationDetail = () => {
     }, [field.clubId]);
 
     useEffect(() => {
-        const fetchPaymentStatus = async () => {
-            try {
-                const payments = await getPaymentsByReservationId(reservationData.id);
+        if (isOwner) {
+            const fetchPaymentStatus = async () => {
+                try {
+                    const payments = await getPaymentsByReservationId(reservationData.id);
 
-                if (Array.isArray(payments) && payments.length === 0) {
-                    setPaymentStatus("Pendiente");
-                } else if (payments.length > 0) {
-                    setPaymentStatus(payments[0].transactionStatus || "Desconocido");
+                    if (Array.isArray(payments) && payments.length === 0) {
+                        setPaymentStatus("Pendiente");
+                    } else if (payments.length > 0) {
+                        setPaymentStatus(payments[0].transactionStatus || "Desconocido");
+                    }
+                } catch (error) {
+                    console.error("Error obteniendo estado del pago:", error);
+                    setPaymentStatus("Error al obtener el estado.");
+                } finally {
+                    setLoadingPayment(false);
                 }
-            } catch (error) {
-                console.error("Error obteniendo estado del pago:", error);
-                setPaymentStatus("Error al obtener el estado.");
-            } finally {
-                setLoadingPayment(false);
-            }
-        };
+            };
 
-        fetchPaymentStatus();
+            fetchPaymentStatus();
+        }
     }, [reservationData.id]);
 
     const handlePayment = async () => {
@@ -152,66 +155,70 @@ const ReservationDetail = () => {
                 <Text style={styles.detailLabel}>Costo:</Text>
                 <Text style={styles.detailValue}>${cost}</Text>
 
-
                 {/* Estado de la reserva */}
                 <Text style={styles.statusLabel}>Estado de la reserva:</Text>
-                    <Text style={[
-                        styles.statusValue,
-                        status === "confirmed" ? styles.approved :
-                            status === "pending" ? styles.pending :
-                                status === "completed" ? styles.approved :
+                <Text style={[
+                    styles.statusValue,
+                    status === "confirmed" ? styles.approved :
+                        status === "pending" ? styles.pending :
+                            status === "completed" ? styles.approved :
                                 styles.rejected
-                    ]}>
-                        {status === "confirmed" ? "Confirmada" :
-                            status === "pending" ? "Pendiente" :
-                                status === "completed" ? "Completada" :
+                ]}>
+                    {status === "confirmed" ? "Confirmada" :
+                        status === "pending" ? "Pendiente" :
+                            status === "completed" ? "Completada" :
                                 "Cancelada"}
-                    </Text>
-
-
-                {/* Estado del pago */}
-                <Text style={styles.statusLabel}>Estado del pago de la seña:</Text>
-                {loadingPayment ? (
-                    <ActivityIndicator size="small" color={COLORS.primary} />
-                ) : (
-                    <Text style={[
-                        styles.statusValue,
-                        paymentStatus === "approved" ? styles.approved :
-                            paymentStatus === "rejected" ? styles.rejected :
-                                styles.pending
-                    ]}>
-                        {paymentStatus === "approved" ? "Aprobado" :
-                            paymentStatus === "rejected" ? "Rechazado" :
-                                "Pendiente"}
-                    </Text>
-                )}
-
-                <View style={styles.buttonContainer}>
-                    {(paymentStatus !== "approved")&& (
-                        <CustomButton
-                            title={`Pagar seña ($${(cost / 2).toFixed(0)})`}
-                            onPress={handlePayment}
-                            color={COLORS.primary}
-                            style={styles.actionButton}
-                        />
-                    )}
-
-                    {(status !== "cancelled")&& (
-                        <CustomButton
-                            title={"Cancelar reserva"}
-                            onPress={() => console.log("Cancelar reserva")}
-                            color={"red"}
-                            style={styles.cancelButton}
-                        />
-                    )}
-                </View>
-
-                <Text style={styles.noteText}>
-                    Recordá que si cancelas con 24hs de anticipación, se te devolverá la seña.
                 </Text>
+
+                {/* Si el usuario es el dueño de la reserva, mostrar opciones de pago y cancelación */}
+                {isOwner && (
+                    <>
+                        {/* Estado del pago */}
+                        <Text style={styles.statusLabel}>Estado del pago de la seña:</Text>
+                        {loadingPayment ? (
+                            <ActivityIndicator size="small" color={COLORS.primary} />
+                        ) : (
+                            <Text style={[
+                                styles.statusValue,
+                                paymentStatus === "approved" ? styles.approved :
+                                    paymentStatus === "rejected" ? styles.rejected :
+                                        styles.pending
+                            ]}>
+                                {paymentStatus === "approved" ? "Aprobado" :
+                                    paymentStatus === "rejected" ? "Rechazado" :
+                                        "Pendiente"}
+                            </Text>
+                        )}
+
+                        <View style={styles.buttonContainer}>
+                            {paymentStatus !== "approved" && (
+                                <CustomButton
+                                    title={`Pagar seña ($${(cost / 2).toFixed(0)})`}
+                                    onPress={handlePayment}
+                                    color={COLORS.primary}
+                                    style={styles.actionButton}
+                                />
+                            )}
+
+                            {status !== "cancelled" && (
+                                <CustomButton
+                                    title={"Cancelar reserva"}
+                                    onPress={() => console.log("Cancelar reserva")}
+                                    color={"red"}
+                                    style={styles.cancelButton}
+                                />
+                            )}
+                        </View>
+
+                        <Text style={styles.noteText}>
+                            Recordá que si cancelas con 24hs de anticipación, se te devolverá la seña.
+                        </Text>
+                    </>
+                )}
             </View>
         </ScrollView>
     );
+
 };
 
 export default ReservationDetail;

@@ -9,6 +9,7 @@ import FilterModal from '../screens/Filters';
 import SearchFields from "../screens/SearchFields";
 import NewEvent from "../screens/NewEvent";
 import FieldReservation from "../screens/FieldReservation";
+import ReservationDetail from "../screens/ReservationDetail";
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +33,7 @@ const HomeStackNavigator = () => {
             <Stack.Screen name="Buscar Canchas" component={SearchFields} />
             <Stack.Screen name="Nuevo Evento" component={NewEvent} />
             <Stack.Screen name="Reserva Cancha" component={FieldReservation} />
+            <Stack.Screen name="ReservationDetail" options={{title: "Detalle de reserva"}} component={ReservationDetail} />
 
             {/* Modales */}
             <Stack.Group screenOptions={{ presentation: 'fullScreenModal', headerShown: false }}>
