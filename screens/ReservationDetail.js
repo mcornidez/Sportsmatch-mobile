@@ -24,6 +24,8 @@ const ReservationDetail = () => {
     const route = useRoute();
     const { reservationData, isOwner, eventDate, eventDuration } = route.params;
 
+    const parsedEventDate = eventDate ? DateTime.fromISO(eventDate) : null;
+
     if (!reservationData) {
         return (
             <View style={styles.container}>
@@ -92,10 +94,11 @@ const ReservationDetail = () => {
 
         const token = await SecureStore.getItemAsync("userToken");
 
-        navigation.navigate("NewPayment", {
-            amount: reservationData.cost,
+        navigation.navigate("PaymentDetail", {
+            token: token,
+            reservationCost: reservationData.cost,
             reservationId: reservationData.id,
-            apiKey: token,
+            clubName: reservationData.clubName
         });
     };
 
@@ -147,9 +150,9 @@ const ReservationDetail = () => {
         formattedDate = DateTime.fromISO(timeSlots[0].date).toFormat("dd/MM/yyyy");
         formattedStartTime = startTime.toFormat("HH:mm");
     } 
-    else if (eventDate) {
-        formattedDate = eventDate.toFormat("dd/MM/yyyy");
-        formattedStartTime = eventDate.toFormat("HH:mm");
+    else if (parsedEventDate) {
+        formattedDate = parsedEventDate.toFormat("dd/MM/yyyy");
+        formattedStartTime = parsedEventDate.toFormat("HH:mm");
         duration = eventDuration || 0;
     }
     else {

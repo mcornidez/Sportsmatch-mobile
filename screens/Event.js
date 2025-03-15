@@ -42,6 +42,7 @@ const Event = ({ route }) => {
   const [reservationData, setReservationData] = useState(null);
   const { signOut } = useContext(AuthContext);
   const navigation = useNavigation();
+  const [loadingReservation, setLoadingReservation] = useState(true);
 
   useEffect(() => {
     const fetchReservation = async () => {
@@ -55,6 +56,8 @@ const Event = ({ route }) => {
       } catch (error) {
         console.error("❌ Error obteniendo la reserva:", error);
         setReservationData(null);
+      } finally {
+        setLoadingReservation(false);
       }
     };
 
@@ -172,7 +175,7 @@ const Event = ({ route }) => {
 
   const renderEventButton = (loading) => {
 
-    if (!eventData || !currUser) {
+    if (loadingReservation || !eventData || !currUser) {
       return null;
     }
 
@@ -317,13 +320,17 @@ const Event = ({ route }) => {
         <Divider width={1} />
         {!ownerId && renderParticipantStatusMessage()}
 
-        {/* 🔹 Ahora el botón se muestra aquí */}
-        {eventData && renderEventButton()}
+        {loadingReservation ? (
+            <ActivityIndicator size="large" color={COLORS.primary} />
+        ) : (
+            <>
+              {eventData && renderEventButton()}
+              {reservationData && (
+                  <CustomButton title={"Detalle de reserva"} onPress={handleReservationDetail} color={COLORS.primary} />
+              )}
+            </>
+        )}
       </View>
-      {reservationData && (
-          <CustomButton title={"Detalle de reserva"} onPress={handleReservationDetail} color={COLORS.primary} />
-      )}
-
     </View>
   );
 };

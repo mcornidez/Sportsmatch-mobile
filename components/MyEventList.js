@@ -15,12 +15,14 @@ import { DateTime } from "luxon";
 import { getSports } from "../services/sportService";
 
 const MyEventList = ({ data }) => {
-  const [participantList, setParticipantsList] = useState(
-    data.item.participants
-  );
+  const [participantList, setParticipantsList] = useState([]);
   const [remaining, setRemaining] = useState(+data.item.remaining);
   const navigation = useNavigation();
   const [sports, setSports] = useState([]);
+
+    useEffect(() => {
+        setParticipantsList(data.item.participants);
+    }, [data.item.participants]);
 
     useEffect(() => {
         const fetchSports = async () => {
