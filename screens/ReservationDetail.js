@@ -87,6 +87,7 @@ const ReservationDetail = () => {
 
     const { field, timeSlots, cost, status, payment } = reservationData;
     const isPaid = payment?.isPaid || false;
+    const paymentDate = payment?.paymentDate;
 
 
     const handlePayment = async () => {
@@ -106,7 +107,8 @@ const ReservationDetail = () => {
             eventId,
             isOwner,
             eventDate,
-            eventDuration
+            eventDuration,
+            paymentDate
         });
     };
 

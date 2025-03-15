@@ -4,11 +4,22 @@ import CustomButton from "../components/CustomButton";
 import {useNavigation, useRoute} from "@react-navigation/native";
 import {View, StyleSheet, Text} from "react-native";
 import { COLORS } from "../constants";
+import {DateTime} from "luxon";
 
 const PaymentDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { token, reservationId, reservationCost, clubName, isPaid, eventId, isOwner, eventDate, eventDuration } = route.params;
+    const { token,
+        reservationId,
+        reservationCost,
+        clubName,
+        isPaid,
+        eventId,
+        isOwner,
+        eventDate,
+        eventDuration,
+        paymentDate
+    } = route.params;
 
     if (!reservationId) {
         return (
@@ -37,6 +48,10 @@ const PaymentDetail = () => {
         });
     };
 
+    const formattedPaymentDate = paymentDate
+        ? DateTime.fromISO(paymentDate).toFormat("dd/MM/yyyy HH:mm")
+        : null;
+
     return (
         <View style={styles.container}>
             <Text style={styles.headerTitle}>{clubName}</Text>
@@ -53,10 +68,19 @@ const PaymentDetail = () => {
 
                 <View style={styles.divider} />
 
-                <Text style={styles.totalLabel}>
-                    {isPaid ? "Total pagado:" : "Total a pagar hoy:"}
-                </Text>
-                <Text style={styles.totalValue}>${totalToPayNow.toFixed(2)}</Text>
+                {isPaid ? (
+                    <>
+                        <Text style={styles.totalLabel}>Total pagado:</Text>
+                        <Text style={styles.totalValue}>${totalToPayNow.toFixed(2)}</Text>
+                        <Text style={styles.detailLabel}>Pagado el:</Text>
+                        <Text style={styles.detailValue}>{formattedPaymentDate}</Text>
+                    </>
+                ) : (
+                    <>
+                        <Text style={styles.totalLabel}>Total a pagar hoy:</Text>
+                        <Text style={styles.totalValue}>${totalToPayNow.toFixed(2)}</Text>
+                    </>
+                )}
 
                 <Text style={styles.totalLabel}>Total a pagar en el lugar:</Text>
                 <Text style={styles.totalValue}>${totalToPayOnSite.toFixed(2)}</Text>
