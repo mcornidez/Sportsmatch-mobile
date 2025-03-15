@@ -8,7 +8,7 @@ import { COLORS } from "../constants";
 const PaymentDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { token, reservationId, reservationCost, clubName } = route.params;
+    const { token, reservationId, reservationCost, clubName, isPaid } = route.params;
 
     if (!reservationId) {
         return (
@@ -49,22 +49,25 @@ const PaymentDetail = () => {
 
                 <View style={styles.divider} />
 
-                <Text style={styles.totalLabel}>Total a pagar hoy:</Text>
+                <Text style={styles.totalLabel}>
+                    {isPaid ? "Total pagado:" : "Total a pagar hoy:"}
+                </Text>
                 <Text style={styles.totalValue}>${totalToPayNow.toFixed(2)}</Text>
 
                 <Text style={styles.totalLabel}>Total a pagar en el lugar:</Text>
                 <Text style={styles.totalValue}>${totalToPayOnSite.toFixed(2)}</Text>
             </View>
 
-            <View style={{ width: "100%", alignItems: "center", marginTop: 40 }}>
-                <CustomButton
-                    title="Pagar"
-                    onPress={handlePayment}
-                    color={COLORS.primary}
-                    style={styles.actionButton}
-                />
-            </View>
-
+            {!isPaid && (
+                <View style={{ width: "100%", alignItems: "center", marginTop: 40 }}>
+                    <CustomButton
+                        title="Pagar"
+                        onPress={handlePayment}
+                        color={COLORS.primary}
+                        style={styles.actionButton}
+                    />
+                </View>
+                )}
         </View>
     );
 };

@@ -92,13 +92,16 @@ const ReservationDetail = () => {
             return;
         }
 
+        const isPaid = paymentStatus === "approved";
+
         const token = await SecureStore.getItemAsync("userToken");
 
         navigation.navigate("PaymentDetail", {
             token: token,
             reservationCost: reservationData.cost,
             reservationId: reservationData.id,
-            clubName: reservationData.clubName
+            clubName: reservationData.clubName,
+            isPaid: isPaid
         });
     };
 
@@ -238,6 +241,15 @@ const ReservationDetail = () => {
                                         style={styles.actionButton}
                                     />
                                 </>
+                            )}
+
+                            {paymentStatus === "approved" && (
+                                <CustomButton
+                                    title="Detalle del pago"
+                                    onPress={handlePayment}
+                                    color={COLORS.primary}
+                                    style={styles.actionButton}
+                                />
                             )}
 
                             {status !== "cancelled" && (
