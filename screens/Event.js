@@ -241,7 +241,7 @@ const Event = ({ route }) => {
   const handleReservationDetail = () => {
     const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
 
-    navigation.navigate("ReservationDetail", { reservationData, isOwner, eventDate, eventDuration });
+    navigation.navigate("ReservationDetail", { eventId, isOwner, eventDate, eventDuration });
   };
 
   {renderEventButton()}

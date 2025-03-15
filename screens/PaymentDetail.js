@@ -8,7 +8,7 @@ import { COLORS } from "../constants";
 const PaymentDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { token, reservationId, reservationCost, clubName, isPaid } = route.params;
+    const { token, reservationId, reservationCost, clubName, isPaid, eventId, isOwner, eventDate, eventDuration } = route.params;
 
     if (!reservationId) {
         return (
@@ -30,6 +30,10 @@ const PaymentDetail = () => {
             amount: totalToPayNow,
             reservationId: reservationId,
             apiKey: token,
+            eventId,
+            isOwner,
+            eventDate,
+            eventDuration
         });
     };
 

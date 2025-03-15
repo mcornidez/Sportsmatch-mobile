@@ -14,7 +14,7 @@ import { COLORS } from "../constants";
 import {DateTime} from "luxon";
 import { getClubById } from "../services/clubService";
 import { getPaymentsByReservationId } from "../services/paymentsService";
-import { cancelReservation } from "../services/reservationService";
+import {cancelReservation, fetchReservationsByEvent} from "../services/reservationService";
 import CustomButton from "../components/CustomButton";
 import * as SecureStore from "expo-secure-store";
 import { UserContext } from "../contexts/UserContext";
@@ -22,9 +22,60 @@ import { UserContext } from "../contexts/UserContext";
 const ReservationDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { reservationData, isOwner, eventDate, eventDuration } = route.params;
+    const { eventId, isOwner, eventDate, eventDuration } = route.params;
+    const [reservationData, setReservationData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [clubAddress, setClubAddress] = useState(null);
+    const [loadingAddress, setLoadingAddress] = useState(true);
+    const [loadingCancel, setLoadingCancel] = useState(false);
 
     const parsedEventDate = eventDate ? DateTime.fromISO(eventDate) : null;
+
+    useEffect(() => {
+        const fetchReservation = async () => {
+            try {
+                const reservations = await fetchReservationsByEvent(eventId);
+                if (Array.isArray(reservations) && reservations.length > 0) {
+                    setReservationData(reservations[0]);
+                } else {
+                    setReservationData(null);
+                }
+            } catch (error) {
+                console.error("❌ Error obteniendo la reserva:", error);
+                setReservationData(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReservation();
+    }, [eventId]);
+
+    useEffect(() => {
+        const fetchClubAddress = async () => {
+            if (reservationData?.field?.clubId) {
+                try {
+                    const club = await getClubById(reservationData.field.clubId);
+                    setClubAddress(club.address || "Dirección no disponible");
+                } catch (error) {
+                    console.error("Error obteniendo la dirección del club:", error);
+                    setClubAddress("Error al obtener la dirección.");
+                } finally {
+                    setLoadingAddress(false);
+                }
+            } else {
+                setLoadingAddress(false);
+            }
+        };
+
+        if (reservationData) {
+            fetchClubAddress();
+        }
+    }, [reservationData]);
+
+    if (loading) {
+        return <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: "50%" }} />;
+    }
 
     if (!reservationData) {
         return (
@@ -34,65 +85,15 @@ const ReservationDetail = () => {
         );
     }
 
-    const { field, timeSlots, cost, status } = reservationData;
-    const [clubAddress, setClubAddress] = useState(null);
-    const [loadingAddress, setLoadingAddress] = useState(true);
-    const [paymentStatus, setPaymentStatus] = useState(null);
-    const [loadingPayment, setLoadingPayment] = useState(true);
-    const [loadingCancel, setLoadingCancel] = useState(false);
+    const { field, timeSlots, cost, status, payment } = reservationData;
+    const isPaid = payment?.isPaid || false;
 
-    useEffect(() => {
-        const fetchClubAddress = async () => {
-            try {
-                if (field && field.clubId) {
-                    const club = await getClubById(field.clubId);
-                    setClubAddress(club.address || "Dirección no disponible");
-                } else {
-                    setClubAddress("Dirección no disponible");
-                }
-            } catch (error) {
-                console.error("Error obteniendo la dirección del club:", error);
-                setClubAddress("Error al obtener la dirección.");
-            } finally {
-                setLoadingAddress(false);
-            }
-        };
-
-        fetchClubAddress();
-    }, [field]);
-
-    useEffect(() => {
-        if (isOwner && reservationData && reservationData.id) {
-            const fetchPaymentStatus = async () => {
-                try {
-                    const payments = await getPaymentsByReservationId(reservationData.id);
-
-                    if (Array.isArray(payments) && payments.length === 0) {
-                        setPaymentStatus("Pendiente");
-                    } else if (payments.length > 0) {
-                        setPaymentStatus(payments[0].transactionStatus || "Desconocido");
-                    }
-                } catch (error) {
-                    console.error("Error obteniendo estado del pago:", error);
-                    setPaymentStatus("Error al obtener el estado.");
-                } finally {
-                    setLoadingPayment(false);
-                }
-            };
-
-            fetchPaymentStatus();
-        } else {
-            setLoadingPayment(false);
-        }
-    }, [isOwner, reservationData]);
 
     const handlePayment = async () => {
         if (!reservationData || !reservationData.id || !reservationData.cost) {
             Alert.alert("Error", "No se puede procesar el pago porque falta información de la reserva.");
             return;
         }
-
-        const isPaid = paymentStatus === "approved";
 
         const token = await SecureStore.getItemAsync("userToken");
 
@@ -101,7 +102,11 @@ const ReservationDetail = () => {
             reservationCost: reservationData.cost,
             reservationId: reservationData.id,
             clubName: reservationData.clubName,
-            isPaid: isPaid
+            isPaid,
+            eventId,
+            isOwner,
+            eventDate,
+            eventDuration
         });
     };
 
@@ -212,23 +217,15 @@ const ReservationDetail = () => {
                 {isOwner && (
                     <>
                         <Text style={styles.statusLabel}>Estado del pago de la seña:</Text>
-                        {loadingPayment ? (
-                            <ActivityIndicator size="small" color={COLORS.primary} />
-                        ) : (
-                            <Text style={[
-                                styles.statusValue,
-                                paymentStatus === "approved" ? styles.approved :
-                                    paymentStatus === "rejected" ? styles.rejected :
-                                        styles.pending
-                            ]}>
-                                {paymentStatus === "approved" ? "Aprobado" :
-                                    paymentStatus === "rejected" ? "Rechazado" :
-                                        "Pendiente"}
-                            </Text>
-                        )}
+                        <Text style={[
+                            styles.statusValue,
+                            isPaid ? styles.approved : styles.pending
+                        ]}>
+                            {isPaid ? "Aprobado" : "Pendiente"}
+                        </Text>
 
                         <View style={styles.buttonContainer}>
-                            {paymentStatus !== "approved" && status === "confirmed" && (
+                            {!isPaid && status === "confirmed" && (
                                 <>
                                     <Text style={styles.noteText}>
                                         Recordá que tenés hasta 24hs antes de la reserva para pagar la seña.
@@ -243,7 +240,7 @@ const ReservationDetail = () => {
                                 </>
                             )}
 
-                            {paymentStatus === "approved" && (
+                            {isPaid && (
                                 <CustomButton
                                     title="Detalle del pago"
                                     onPress={handlePayment}
