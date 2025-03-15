@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   FlatList,
+    Text,
   SafeAreaView,
   RefreshControl,
   View,
@@ -24,6 +25,7 @@ const Home = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [sports, setSports] = useState([]);
   const {currUser} = useContext(UserContext);
+  const [loadingSports, setLoadingSports] = useState(true);
 
   const loadEvents = async () => {
     if (!currUser || !currUser.id) {
@@ -76,6 +78,8 @@ const Home = ({ navigation, route }) => {
         setSports(sportsData);
       } catch (error) {
         console.error("Error loading sports:", error);
+      } finally {
+        setLoadingSports(false);
       }
     };
 
@@ -164,6 +168,12 @@ const Home = ({ navigation, route }) => {
 
   return (
       <SafeAreaView style={{ flex: 1, minHeight: "100%"}}>
+        {loadingSports ? (
+            <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            </View>
+        ) : (
+            <>
         <FlatList
             data={sports}
             renderItem={renderItemPill}
@@ -195,6 +205,8 @@ const Home = ({ navigation, route }) => {
                 ListEmptyComponent={renderEmptyList}
             ></FlatList>
         )}
+            </>
+            )}
       </SafeAreaView>
   );
 };

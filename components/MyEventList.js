@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, Text } from "react-native";
+import {ActivityIndicator, FlatList, Text} from "react-native";
 import { View } from "react-native";
 import EventStatus from "./EventStatus";
 import { Divider } from "@rneui/base";
@@ -19,6 +19,7 @@ const MyEventList = ({ data }) => {
   const [remaining, setRemaining] = useState(+data.item.remaining);
   const navigation = useNavigation();
   const [sports, setSports] = useState([]);
+  const [loadingSports, setLoadingSports] = useState(true);
 
     useEffect(() => {
         setParticipantsList(data.item.participants);
@@ -31,6 +32,8 @@ const MyEventList = ({ data }) => {
                 setSports(sportsData);
             } catch (error) {
                 console.error("Error loading sports:", error);
+            } finally {
+                setLoadingSports(false);
             }
         };
 
@@ -103,7 +106,11 @@ const MyEventList = ({ data }) => {
             justifyContent: "space-between",
           }}
         >
-            <Text style={{ fontSize: 24, fontWeight: "600" }}>{sport}</Text>
+            {loadingSports ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+                <Text style={{ fontSize: 24, fontWeight: "600" }}>{sport}</Text>
+            )}
             <EventStatus status={data.item.eventStatus} />
         </View>
         <View
