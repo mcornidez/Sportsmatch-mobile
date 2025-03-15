@@ -224,13 +224,6 @@ const Event = ({ route }) => {
     );
   };
 
-
-  const handleReservationDetail = () => {
-    const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
-
-    navigation.navigate("ReservationDetail", { reservationData, isOwner });
-  };
-
   let eventDate = eventData?.schedule
       ? DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ", { zone: "utc" })
       : null;
@@ -239,6 +232,14 @@ const Event = ({ route }) => {
   const formattedTime = eventDate ? eventDate.toFormat("HH:mm") : "--:--";
 
   const sportName = sports.find((s) => s.id === eventData?.sportId)?.name || "Deporte desconocido";
+
+  const eventDuration = eventData?.duration ? eventData.duration : 0;
+
+  const handleReservationDetail = () => {
+    const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
+
+    navigation.navigate("ReservationDetail", { reservationData, isOwner, eventDate, eventDuration });
+  };
 
   {renderEventButton()}
 

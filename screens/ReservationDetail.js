@@ -22,7 +22,7 @@ import { UserContext } from "../contexts/UserContext";
 const ReservationDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { reservationData, isOwner } = route.params;
+    const { reservationData, isOwner, eventDate, eventDuration } = route.params;
 
     if (!reservationData) {
         return (
@@ -32,7 +32,6 @@ const ReservationDetail = () => {
         );
     }
 
-    // Obtener datos de la reserva
     const { field, timeSlots, cost, status } = reservationData;
     const [clubAddress, setClubAddress] = useState(null);
     const [loadingAddress, setLoadingAddress] = useState(true);
@@ -43,8 +42,12 @@ const ReservationDetail = () => {
     useEffect(() => {
         const fetchClubAddress = async () => {
             try {
-                const club = await getClubById(field.clubId);
-                setClubAddress(club.address || "Dirección no disponible");
+                if (field && field.clubId) {
+                    const club = await getClubById(field.clubId);
+                    setClubAddress(club.address || "Dirección no disponible");
+                } else {
+                    setClubAddress("Dirección no disponible");
+                }
             } catch (error) {
                 console.error("Error obteniendo la dirección del club:", error);
                 setClubAddress("Error al obtener la dirección.");
@@ -54,10 +57,10 @@ const ReservationDetail = () => {
         };
 
         fetchClubAddress();
-    }, [field.clubId]);
+    }, [field]);
 
     useEffect(() => {
-        if (isOwner) {
+        if (isOwner && reservationData && reservationData.id) {
             const fetchPaymentStatus = async () => {
                 try {
                     const payments = await getPaymentsByReservationId(reservationData.id);
@@ -76,11 +79,16 @@ const ReservationDetail = () => {
             };
 
             fetchPaymentStatus();
+        } else {
+            setLoadingPayment(false);
         }
-    }, [reservationData.id]);
+    }, [isOwner, reservationData]);
 
     const handlePayment = async () => {
-        if (!reservationData) return;
+        if (!reservationData || !reservationData.id || !reservationData.cost) {
+            Alert.alert("Error", "No se puede procesar el pago porque falta información de la reserva.");
+            return;
+        }
 
         const token = await SecureStore.getItemAsync("userToken");
 
@@ -93,6 +101,11 @@ const ReservationDetail = () => {
 
     const handleCancelReservation = async () => {
         console.log("🛑 Iniciando proceso de cancelación de reserva...");
+
+        if (!reservationData || !reservationData.id) {
+            Alert.alert("Error", "No se puede cancelar la reserva porque no hay información disponible.");
+            return;
+        }
 
         Alert.alert(
             "Confirmar cancelación",
@@ -125,31 +138,40 @@ const ReservationDetail = () => {
         );
     };
 
+    let startTime, endTime, duration, formattedDate, formattedStartTime;
 
-
-    // Formatear fecha y hora de la reserva
-    const startTime = DateTime.fromFormat(timeSlots[0].startTime, "HH:mm:ss");
-    const endTime = DateTime.fromFormat(timeSlots[0].endTime, "HH:mm:ss");
-    const duration = endTime.diff(startTime, "minutes").minutes;
-
-    const formattedDate = DateTime.fromISO(timeSlots[0].date).toFormat("dd/MM/yyyy");
-    const formattedStartTime = startTime.toFormat("HH:mm");
+    if (timeSlots && timeSlots.length > 0) {
+        startTime = DateTime.fromFormat(timeSlots[0].startTime, "HH:mm:ss");
+        endTime = DateTime.fromFormat(timeSlots[0].endTime, "HH:mm:ss");
+        duration = endTime.diff(startTime, "minutes").minutes;
+        formattedDate = DateTime.fromISO(timeSlots[0].date).toFormat("dd/MM/yyyy");
+        formattedStartTime = startTime.toFormat("HH:mm");
+    } 
+    else if (eventDate) {
+        formattedDate = eventDate.toFormat("dd/MM/yyyy");
+        formattedStartTime = eventDate.toFormat("HH:mm");
+        duration = eventDuration || 0;
+    }
+    else {
+        formattedDate = "No disponible";
+        formattedStartTime = "No disponible";
+        duration = 0;
+    }
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.clubName}>{field.clubName}</Text>
+            <Text style={styles.clubName}>{field?.clubName || "Cancha no disponible"}</Text>
 
-            {/* Detalles de la reserva */}
             <View style={styles.detailsContainer}>
                 <Text style={styles.detailLabel}>Ubicación:</Text>
                 {loadingAddress ? (
                     <ActivityIndicator size="small" color={COLORS.primary} />
                 ) : (
-                    <Text style={styles.detailValue}>{clubAddress}</Text>
+                    <Text style={styles.detailValue}>{clubAddress || "No disponible"}</Text>
                 )}
 
                 <Text style={styles.detailLabel}>Cancha:</Text>
-                <Text style={styles.detailValue}>{field.name}</Text>
+                <Text style={styles.detailValue}>{field?.name || "No disponible"}</Text>
 
                 <Text style={styles.detailLabel}>Fecha y hora:</Text>
                 <Text style={styles.detailValue}>{formattedDate} a las {formattedStartTime}</Text>
@@ -157,7 +179,7 @@ const ReservationDetail = () => {
                 <Text style={styles.detailLabel}>Duración:</Text>
                 <Text style={styles.detailValue}>{duration} min</Text>
 
-                {field.description && (
+                {field?.description && (
                     <>
                         <Text style={styles.detailLabel}>Descripción:</Text>
                         <Text style={styles.detailValue}>{field.description}</Text>
@@ -165,9 +187,8 @@ const ReservationDetail = () => {
                 )}
 
                 <Text style={styles.detailLabel}>Costo:</Text>
-                <Text style={styles.detailValue}>${cost}</Text>
+                <Text style={styles.detailValue}>${cost || "No disponible"}</Text>
 
-                {/* Estado de la reserva */}
                 <Text style={styles.statusLabel}>Estado de la reserva:</Text>
                 <Text style={[
                     styles.statusValue,
@@ -182,10 +203,8 @@ const ReservationDetail = () => {
                                 "Cancelada"}
                 </Text>
 
-                {/* Si el usuario es el dueño de la reserva, mostrar opciones de pago y cancelación */}
                 {isOwner && (
                     <>
-                        {/* Estado del pago */}
                         <Text style={styles.statusLabel}>Estado del pago de la seña:</Text>
                         {loadingPayment ? (
                             <ActivityIndicator size="small" color={COLORS.primary} />
