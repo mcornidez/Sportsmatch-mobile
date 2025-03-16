@@ -3,6 +3,28 @@ import { authenticatedFetch } from "./eventService";
 import { Buffer } from "@craftzdog/react-native-buffer";
 import { API_URL } from '@env';
 
+export const fetchUserProfile = async (userId, token) => {
+  try {
+    const response = await fetch(`${API_URL}/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'c-api-key': token,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch user profile:", error);
+    throw error;
+  }
+};
+
+
 export const updateUser = async (userId, userData) => {
   const response = await authenticatedFetch("/users/" + userId, {
     method: "PUT",

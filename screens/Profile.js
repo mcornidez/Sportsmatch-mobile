@@ -10,18 +10,36 @@ import {
 import { COLORS } from "../constants";
 import { Avatar, Chip, Divider } from "@rneui/themed";
 import { Ionicons } from "@expo/vector-icons";
-import { SPORT } from "../constants/data";
 import DefaultProfile from "../assets/default-profile.png";
 import { NoContentMessage } from "../components/NoContentMessage";
 import { UserContext } from "../contexts/UserContext";
-import {fetchUserImage} from "../services/userService";
+import { useFocusEffect } from "@react-navigation/native";
+import {fetchUserProfile} from "../services/userService";
+import { getSports } from "../services/sportService";
+
 
 const Profile = () => {
-  const { currUser } = useContext(UserContext);
-  const baseAvatarURL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars"
+  const { currUser, setCurrUser } = useContext(UserContext);
   const [imageUrl, setImageUrl] = useState(
       currUser?.imageUrl || DefaultProfile
   );
+  const [sportsData, setSportsData] = useState([]);
+
+
+  useFocusEffect(
+      React.useCallback(() => {
+        const refreshUser = async () => {
+          const updatedUser = await fetchUserProfile(currUser.id);
+          const fetchedSports = await getSports();
+          setSportsData(fetchedSports);
+          setCurrUser(updatedUser);
+        };
+
+        refreshUser();
+      }, [])
+  );
+
+
 
   useEffect(() => {
     if (currUser?.imageUrl) {
@@ -104,17 +122,18 @@ const Profile = () => {
               <Divider width={3} style={{ width: "100%", marginBottom: 16 }} />
               <View style={styles.chipContainer}>
                 {currUser?.sports.length != 0 ? (
-                  currUser.sports.map((sport, idx) => {
-                    return (
-                      <Chip
-                        title={SPORT[sport - 1]}
-                        key={idx}
-                        color={COLORS.primary}
-                      />
-                    );
-                  })
+                    currUser.sports.map((sportId, idx) => {
+                      const sport = sportsData.find((s) => s.id === sportId);
+                      return (
+                          <Chip
+                              title={sport?.name || "Deporte desconocido"}
+                              key={idx}
+                              color={COLORS.primary}
+                          />
+                      );
+                    })
                 ) : (
-                  <NoContentMessage message="No elegiste ningun deporte"/>
+                    <NoContentMessage message="No elegiste ningún deporte" />
                 )}
               </View>
             </View>
@@ -122,16 +141,12 @@ const Profile = () => {
               <Text style={styles.bodyText}>Mis Ubicaciones</Text>
               <Divider width={3} style={{ width: "100%", marginBottom: 16 }} />
               <View style={styles.chipContainer}>
-                {currUser?.locations.length && 
-                currUser.locations.every((location) => location !== null) != 0 ?
-                 (
-                  currUser.locations.map((location, idx) => {
-                    return (
-                      <Chip title={location} key={idx} color={COLORS.primary} />
-                    );
-                  })
+                {currUser?.locations && currUser.locations.length > 0 && currUser.locations.every(location => location !== null) ? (
+                    currUser.locations.map((location, idx) => (
+                        <Chip title={location} key={idx} color={COLORS.primary} />
+                    ))
                 ) : (
-                  <NoContentMessage message="No elegiste ninguna ubicación"/>
+                    <NoContentMessage message="No elegiste ninguna ubicación" />
                 )}
               </View>
             </View>

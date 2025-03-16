@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import CustomButton from "../components/CustomButton";
 import { Controller, useForm } from "react-hook-form";
-import { EXPERTISE, LOCATIONS, SPORT } from "../constants/data";
+import { EXPERTISE, LOCATIONS } from "../constants/data";
 import { COLORS, FONTS } from "../constants";
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 import {

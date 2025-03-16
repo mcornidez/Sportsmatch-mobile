@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import CustomButton from "../components/CustomButton";
-import { EVENT_STATUS, EXPERTISE, SPORT, USER_STATUS } from "../constants/data";
+import { EVENT_STATUS, EXPERTISE, USER_STATUS } from "../constants/data";
 import {
   fetchEventById,
   fetchParticipants,

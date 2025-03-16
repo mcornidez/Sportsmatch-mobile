@@ -58,10 +58,28 @@ const Home = ({ navigation, route }) => {
         setEventsList([]);
         setFilteredEventList([]);
       } else {
+
         let eventos = data.items;
         if (onlyClubs) {
           eventos = eventos.filter(e => e.organizerType  === "club");
         }
+
+        eventos.sort((a, b) => {
+          const userSports = currUser.sports || [];
+          const userLocations = currUser.locations || [];
+
+          // Calculamos prioridad de cada evento
+          const aPriority =
+              (userSports.includes(a.sportId) ? 1 : 0) +
+              (userLocations.some((loc) => a.location.includes(loc)) ? 1 : 0);
+          const bPriority =
+              (userSports.includes(b.sportId) ? 1 : 0) +
+              (userLocations.some((loc) => b.location.includes(loc)) ? 1 : 0);
+
+          // Orden descendente (los que tienen más prioridad arriba)
+          return bPriority - aPriority;
+        });
+
         setEventsList(eventos);
         setFilteredEventList(eventos);
       }

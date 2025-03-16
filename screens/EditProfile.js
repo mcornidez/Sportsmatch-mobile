@@ -105,17 +105,15 @@ const EditProfile = () => {
     };
 
     const handleSportsSelect = (sport) => {
-        if (selectedSports.includes(sport.sportId)) {
-            setSelectedSports(
-                selectedSports.filter((item) => item !== sport.sportId)
-            );
+        if (selectedSports.includes(sport.id)) {
+            setSelectedSports(selectedSports.filter((item) => item !== sport.id));
         } else {
-            setSelectedSports([...selectedSports, sport.sportId]);
+            setSelectedSports([...selectedSports, sport.id]);
         }
     };
 
     const isSelected = (sport) => {
-        return selectedSports.includes(sport.sportId) ? sport.title : null;
+        return selectedSports.includes(sport.id);
     };
 
     const dataChanged = (data) => {
@@ -133,8 +131,21 @@ const EditProfile = () => {
         try {
             const token = currUser.token;
 
-            if (dataChanged(data)) {
+            console.log("selectedSports: ", selectedSports)
+            console.log("selectedLocations: ", selectedLocations)
+
+            if (data.phonenumber !== currUser.phoneNumber) {
                 await updatePhoneNumber(currUser.id, data.phonenumber, token);
+            }
+
+            if (selectedSports.length !== currUser.sports.length ||
+                !selectedSports.every(s => currUser.sports.includes(s)) ||
+                selectedLocations.length !== currUser.locations.length ||
+                !selectedLocations.every(l => currUser.locations.includes(l))) {
+                await updateUser(currUser.id, {
+                    sports: selectedSports,
+                    locations: selectedLocations
+                }, token);
             }
 
             if (imageChanged && selectedAvatar) {
@@ -484,8 +495,11 @@ const EditProfile = () => {
                                                 control={control}
                                                 render={() => (
                                                     <Pill
-                                                        customStyle={styles.pillStyle}
-                                                        props={{title: sport.name}}
+                                                        customStyle={{
+                                                            ...styles.pillStyle,
+                                                            ...(isSelected(sport) ? { backgroundColor: COLORS.primary, borderColor: COLORS.primary } : {})
+                                                        }}
+                                                        props={{ title: sport.name }}
                                                         handlePress={() => handleSportsSelect(sport)}
                                                         currentFilter={isSelected(sport)}
                                                     />
@@ -501,11 +515,14 @@ const EditProfile = () => {
                                 <Text style={styles.inputText}>Mis Ubicaciones</Text>
                                 <Controller
                                     control={control}
-                                    render={({field: {onChange, value}}) => (
+                                    render={({ field: { onChange, value } }) => (
                                         <CustomMultiDropdown
                                             data={LOCATIONS}
-                                            onChangeItem={onChange}
-                                            defaultValues={currUser.locations}
+                                            onChangeItem={(items) => {
+                                                onChange(items);
+                                                setSelectedLocations(items);
+                                            }}
+                                            defaultValues={selectedLocations}
                                         />
                                     )}
                                     name="locations"
