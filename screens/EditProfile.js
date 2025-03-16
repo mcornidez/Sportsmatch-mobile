@@ -134,31 +134,35 @@ const EditProfile = () => {
             console.log("selectedSports: ", selectedSports)
             console.log("selectedLocations: ", selectedLocations)
 
+            const payload = {};
+
             if (data.phonenumber !== currUser.phoneNumber) {
-                await updatePhoneNumber(currUser.id, data.phonenumber, token);
+                payload.phoneNumber = data.phonenumber;
             }
 
             if (selectedSports.length !== currUser.sports.length ||
                 !selectedSports.every(s => currUser.sports.includes(s)) ||
                 selectedLocations.length !== currUser.locations.length ||
                 !selectedLocations.every(l => currUser.locations.includes(l))) {
-                await updateUser(currUser.id, {
-                    sports: selectedSports,
-                    locations: selectedLocations
-                }, token);
-            }
+                payload.sports = selectedSports;
+                payload.locations = selectedLocations;
+                payload.phoneNumber = data.phonenumber;
 
-            if (imageChanged && selectedAvatar) {
-                const imgUpdatedRes = await updateUserImage(currUser.id, selectedAvatar);
-                if (imgUpdatedRes.status !== 200) {
-                    setError(imgUpdatedRes.message);
-                    setSubmitLoading(false);
-                    return;
+                if (imageChanged && selectedAvatar) {
+                    payload.imageUrl = selectedAvatar;
                 }
-                currUser.imageUrl = selectedAvatar;
             }
 
-            setCurrUser({...currUser, phoneNumber: data.phonenumber});
+            await updateUser(currUser.id, payload, token);
+
+            setCurrUser({
+                ...currUser,
+                phoneNumber: data.phonenumber,
+                sports: selectedSports,
+                locations: selectedLocations,
+                ...(imageChanged && selectedAvatar ? { imageUrl: selectedAvatar } : {})
+            });
+
             navigator.navigate("MyProfile");
         } catch (error) {
             console.error("Error updating profile:", error);
@@ -495,14 +499,18 @@ const EditProfile = () => {
                                                 control={control}
                                                 render={() => (
                                                     <Pill
-                                                        customStyle={{
-                                                            ...styles.pillStyle,
-                                                            ...(isSelected(sport) ? { backgroundColor: COLORS.primary, borderColor: COLORS.primary } : {})
+                                                        customStyle={[
+                                                            styles.pillStyle,
+                                                            isSelected(sport) && styles.selectedPill
+                                                        ]}
+                                                        props={{
+                                                            title: sport.name,
+                                                            textStyle: isSelected(sport) ? styles.selectedText : styles.unselectedText
                                                         }}
-                                                        props={{ title: sport.name }}
                                                         handlePress={() => handleSportsSelect(sport)}
                                                         currentFilter={isSelected(sport)}
                                                     />
+
                                                 )}
                                                 name={`sports[${sport.name}]`}
                                                 defaultValue={false}
@@ -604,11 +612,25 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         borderWidth: 1,
         borderColor: "black",
-
-        selectedPill: {
-            backgroundColor: COLORS.primary,
-        },
+        backgroundColor: COLORS.white,
     },
+
+    selectedPill: {
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
+    },
+
+    pillText: {
+        fontSize: 14,
+    },
+
+    selectedText: {
+        color: COLORS.white,
+    },
+    unselectedText: {
+        color: COLORS.black,
+    },
+
     nestedScroll: {
         justifyContent: "center",
         alignItems: "center",

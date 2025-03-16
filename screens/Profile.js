@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  Image,
+  Image, ActivityIndicator,
 } from "react-native";
 import { COLORS } from "../constants";
 import { Avatar, Chip, Divider } from "@rneui/themed";
@@ -24,22 +24,29 @@ const Profile = () => {
       currUser?.imageUrl || DefaultProfile
   );
   const [sportsData, setSportsData] = useState([]);
-
+  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
       React.useCallback(() => {
         const refreshUser = async () => {
-          const updatedUser = await fetchUserProfile(currUser.id);
-          const fetchedSports = await getSports();
-          setSportsData(fetchedSports);
-          setCurrUser(updatedUser);
+          try {
+            setLoading(true);
+            const [updatedUser, fetchedSports] = await Promise.all([
+              fetchUserProfile(currUser.id),
+              getSports()
+            ]);
+            setSportsData(fetchedSports);
+            setCurrUser(updatedUser);
+          } catch (err) {
+            console.error("Error loading profile:", err);
+          } finally {
+            setLoading(false);
+          }
         };
 
         refreshUser();
       }, [])
   );
-
-
 
   useEffect(() => {
     if (currUser?.imageUrl) {
@@ -60,6 +67,11 @@ const Profile = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      {loading ? (
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+          </View>
+      ) : (
         <ScrollView contentContainerStyle={styles.mainContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.profileHeader}>
             <Avatar
@@ -152,6 +164,7 @@ const Profile = () => {
             </View>
           </View>
         </ScrollView>
+      )}
     </SafeAreaView>
   );
 };

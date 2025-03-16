@@ -148,11 +148,29 @@ const Home = ({ navigation, route }) => {
 
   const renderItemPill = ({ item }) => {
     item.title = item.name;
+    const isSelected = selectedFilter === item;
+
     return (
         <Pill
-            props={item}
-            handlePress={handleFilter}
-            currentFilter={selectedFilter}
+            customStyle={{
+              paddingHorizontal: 18,
+              paddingVertical: 6,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: COLORS.primary,
+              backgroundColor: isSelected ? COLORS.primary : COLORS.white,
+              marginHorizontal: 5,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            props={{
+              title: item.name,
+              textStyle: isSelected
+                  ? { color: COLORS.white, fontWeight: "600" }
+                  : { color: COLORS.primary, fontWeight: "400" }
+            }}
+            handlePress={() => handleFilter(item)}
+            currentFilter={isSelected}
         />
     );
   };
@@ -210,17 +228,20 @@ const Home = ({ navigation, route }) => {
             </View>
         ) : (
             <>
-        <FlatList
-            data={sports}
-            renderItem={renderItemPill}
-            keyExtractor={(item) => {
-              return item.id.toString();
-            }}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ flex: 1, paddingTop: 20, paddingBottom: 10, maxHeight: 70 }}
-        />
-        {loading ? (
+              <FlatList
+                  data={sports}
+                  renderItem={renderItemPill}
+                  keyExtractor={(item) => item.id.toString()}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ flex: 1, paddingTop: 20, paddingBottom: 10, maxHeight: 70 }}
+                  contentContainerStyle={{
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingHorizontal: 10
+                  }}
+              />
+              {loading ? (
             <ActivityIndicator
                 size="large"
                 color={COLORS.primary}
