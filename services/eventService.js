@@ -83,7 +83,6 @@ export const fetchEvents = async (userId, queryString) => {
 
   try {
     const url = `${API_URL}/events?userId=${userId}&filterOut=true${queryString ? `&${queryString}` : ""}&limit=200`;
-    console.log("📡 Realizando petición a:", url);
 
     const response = await fetch(
         url,
@@ -96,8 +95,6 @@ export const fetchEvents = async (userId, queryString) => {
         }
     );
 
-    console.log("📡 Respuesta recibida con código:", response.status);
-
     if (!response.ok) {
       // Si la respuesta no es exitosa, imprimimos el texto para analizar el error
       const errorText = await response.text();
@@ -106,11 +103,9 @@ export const fetchEvents = async (userId, queryString) => {
     }
 
     const responseText = await response.text();
-    console.log("📡 Respuesta cruda de la API:", responseText);
 
     try {
       const jsonResponse = JSON.parse(responseText);
-      console.log("✅ JSON parseado correctamente:", jsonResponse);
       return jsonResponse;
     } catch (error) {
       console.error("❌ Error al parsear JSON:", error, "Respuesta recibida:", responseText);
@@ -142,7 +137,6 @@ export const fetchMyEvents = async (userId) => {
 
 export const fetchNearEvents = async (userId, queryString = "") => {
   try {
-    console.log("📡 Llamando a fetchEvents con userId:", userId, "y filtros:", queryString);
 
     const response = await fetchEvents(userId, queryString);
 
@@ -155,7 +149,6 @@ export const fetchNearEvents = async (userId, queryString = "") => {
         (event) => event.remaining > 0 && event.eventStatus !== EVENT_STATUS.FINALIZED
     );
 
-    console.log("✅ Eventos después de filtrar:", response.items.length);
     return response;
   } catch (err) {
     console.error("🚨 Error en fetchNearEvents:", err);

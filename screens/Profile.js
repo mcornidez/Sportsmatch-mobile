@@ -18,23 +18,17 @@ import {fetchUserImage} from "../services/userService";
 
 const Profile = () => {
   const { currUser } = useContext(UserContext);
-  const [imageURL, setImageURL] = useState(currUser?.imageURL || DefaultProfile);
-  const [loadingImage, setLoadingImage] = useState(false);
+  const baseAvatarURL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars"
+  const [imageUrl, setImageUrl] = useState(
+      currUser?.imageUrl || DefaultProfile
+  );
 
   useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        const response = await fetchUserImage(currUser.id);
-        if (response.presignedGetUrl) {
-          setImageURL(response.presignedGetUrl);
-        }
-      } catch (error) {
-        console.error("Error obteniendo imagen del usuario:", error);
-      }
-    };
+    if (currUser?.imageUrl) {
+      setImageUrl(currUser.imageUrl);
+    }
+  }, [currUser.imageUrl]);
 
-    fetchImage();
-  }, [currUser.id]);
 
   const formatPhoneNumber = (phoneNumberString) => {
     if (!phoneNumberString) return;
@@ -51,10 +45,11 @@ const Profile = () => {
         <ScrollView contentContainerStyle={styles.mainContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.profileHeader}>
             <Avatar
-              size={108}
-              rounded
-              source={ currUser.imageURL ? { uri: currUser.imageURL } : DefaultProfile}
-              containerStyle={{ backgroundColor: COLORS.secondary }}
+                size={108}
+                rounded
+                source={imageUrl ? { uri: imageUrl } : DefaultProfile}
+                containerStyle={{ backgroundColor: COLORS.secondary }}
+                onError={() => setImageUrl(DefaultProfile)}
             />
             <View style={styles.profileTextContainer}>
               <Text style={styles.profileTextName}>

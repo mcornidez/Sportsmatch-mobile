@@ -34,7 +34,7 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
       if (response === undefined)
         console.error("fetch image response undefined")
       if (response.status === 200) {
-        setImage(response.imageURL);
+        setImage(response.imageUrl);
       }
     };
     try {
@@ -119,10 +119,10 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
       </Modal>
       <View style={styles.userMetadataContainer}>
         <Avatar
-          rounded
-          size={72}
-          source={image ? { uri: image } : DefaultProfile}
-          containerStyle={{ backgroundColor: COLORS.secondary }}
+            rounded
+            size={72}
+            source={props.imageUrl ? { uri: props.imageUrl } : DefaultProfile}
+            containerStyle={{ backgroundColor: COLORS.secondary }}
         />
         <View style={styles.textContainer}>
           <Text style={styles.userText}>{props.firstname}</Text>

@@ -58,9 +58,7 @@ const Home = ({ navigation, route }) => {
         setEventsList([]);
         setFilteredEventList([]);
       } else {
-        console.log("✅ Eventos cargados correctamente:", data.items.length, "eventos");
         let eventos = data.items;
-        console.log("Only clubs: ", onlyClubs)
         if (onlyClubs) {
           eventos = eventos.filter(e => e.organizerType  === "club");
         }
@@ -174,7 +172,6 @@ const Home = ({ navigation, route }) => {
       const jsonData = await fetchNearEvents(currUser.id);
       console.log("✅ Eventos refrescados:", jsonData.items.length);
       let eventos = jsonData.items || [];
-      console.log("Only clubs: ", onlyClubs)
       if (onlyClubs) {
         eventos = eventos.filter(e => e.organizerType === "club");
       }

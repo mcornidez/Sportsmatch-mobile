@@ -96,7 +96,7 @@ export const fetchUserImage = async (userId) => {
 
      return {
        status: response.status,
-       imageURL: data ? `data:image/png;base64,${data}` : null,
+       imageUrl: data ? `data:image/png;base64,${data}` : null,
      };
    }
 

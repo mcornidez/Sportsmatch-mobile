@@ -55,7 +55,7 @@ const Card = ({props}) => {
         const routeName = `Evento${navigation.getId() === "MyEventsStackNavigator" ? "-MisEventos" : ""}`;
         navigation.navigate(routeName, {
                 eventId: props.id,
-                userImgURL: props.userImgURL,
+                userImgURL: props.owner.imageUrl,
                 ownerRating: {
                     rating: props.rating.rate,
                     rateCount: props.rating.count
@@ -83,7 +83,7 @@ const Card = ({props}) => {
             if (response === undefined)
                 console.error("fetch image response undefined")
             if (response.status === 200) {
-                setImage(response.imageURL);
+                setImage(response.imageUrl);
             }
             setLoading(false);
         };
@@ -149,7 +149,7 @@ const Card = ({props}) => {
                         <Avatar
                             rounded
                             size={100}
-                            source={image ? {uri: image} : DefaultProfile}
+                            source={props.owner.imageUrl ? { uri: props.owner.imageUrl } : DefaultProfile}
                             containerStyle={styles.avatar}
                         />
                         <Text style={styles.cardMidText}>{props.owner.firstName}</Text>

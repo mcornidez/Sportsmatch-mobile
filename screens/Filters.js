@@ -75,8 +75,6 @@ const FilterModal = ({ navigation }) => {
                 queryParams.append("schedule", data.schedule.join(","));
             }
 
-            console.log("Only clubs filter: ", data.onlyClubs)
-
             console.log("🔍 Filtros enviados a Home:", queryParams.toString());
             navigation.navigate("Inicio", { filters: queryParams.toString(), onlyClubs: data.onlyClubs });
 

@@ -9,7 +9,12 @@ const ParticipantCard = ({ userData }) => {
     return (
         <View style={styles.card}>
             <View style={{alignSelf: 'center'}}>
-                <Avatar rounded size={60} source={require("../assets/default-profile.png")} containerStyle={{ backgroundColor: COLORS.secondary }} />
+                <Avatar
+                    rounded
+                    size={60}
+                    source={userData.imageUrl ? { uri: userData.imageUrl } : DefaultProfile}
+                    containerStyle={{ backgroundColor: COLORS.secondary }}
+                />
             </View>
             <View style={styles.textContainer}>
                 <Text style={styles.userText}>{userData.firstname} {userData.lastname}</Text>

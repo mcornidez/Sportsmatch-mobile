@@ -36,7 +36,7 @@ const Event = ({ route }) => {
   const [eventParticipants, setEventParticipants] = useState(null);
   const [userStatus, setUserStatus] = useState(USER_STATUS.UNENROLLED);
   const [sports, setSports] = useState([]);
-  const [imageURL, setImageURL] = useState(userImgURL);
+  const [imageUrl, setimageUrl] = useState(userImgURL);
   const { currUser } = useContext(UserContext);
   const [eventData, setEventData] = useState(null);
   const [reservationData, setReservationData] = useState(null);
@@ -76,7 +76,7 @@ const Event = ({ route }) => {
       const fetchImage = async () => {
         const response = await fetchUserImage(ownerId);
         if (response.status == 200) {
-          setImageURL(response.imageURL);
+          setimageUrl(response.imageUrl);
         }
         setLoading(false);
       };
@@ -256,10 +256,16 @@ const Event = ({ route }) => {
     <View style={styles.eventContainer}>
       <View style={styles.eventHeader}>
         <Avatar
-          rounded
-          size={110}
-          source={imageURL ? { uri: imageURL } : DefaultProfile}
-          containerStyle={styles.avatar}
+            rounded
+            size={110}
+            source={
+              eventData.owner?.imageUrl
+                  ? { uri: eventData.owner.imageUrl }
+                  : userImgURL
+                      ? { uri: userImgURL }
+                      : DefaultProfile
+            }
+            containerStyle={styles.avatar}
         />
         <View style={styles.headerData}>
           <Text style={styles.bigText}>{eventData.owner?.firstName}</Text>
