@@ -36,6 +36,9 @@ const FilterModal = ({ navigation }) => {
                             if (fieldName === "date") {
                                 fieldValue = fieldValue !== "" ? new Date(fieldValue) : "";
                             }
+                            if (fieldName === "schedule") {
+                                fieldValue = fieldValue.filter((chip) => typeof chip === "number");
+                            }
                             console.log("SETIE", fieldName, fieldValue);
                             setValue(fieldName, fieldValue, { shouldDirty: true });
                         }
@@ -55,13 +58,19 @@ const FilterModal = ({ navigation }) => {
 
             const queryParams = new URLSearchParams();
 
-            if (data.location) queryParams.append("location", data.location);
-            if (data.expertise) queryParams.append("expertise", data.expertise);
-            if (data.date) queryParams.append("date", formatDate(data.date));
+            if (data.location !== "") queryParams.append("location", data.location);
+            if (data.expertise !== "") {
+                const expIndex = EXPERTISE.indexOf(data.expertise) + 1;
+                queryParams.append("expertise", expIndex.toString());
+            }
+            if (data.date) {
+                const dateObj = new Date(data.date);
+                const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+                queryParams.append("date", formattedDate);
+            }
 
             if (data.schedule.length > 0) {
-                const selectedSchedules = data.schedule.map(index => HORARIOS[index]);
-                queryParams.append("schedule", selectedSchedules.join(","));
+                queryParams.append("schedule", data.schedule.join(","));
             }
 
             console.log("🔍 Filtros enviados a Home:", queryParams.toString());
@@ -83,15 +92,16 @@ const FilterModal = ({ navigation }) => {
         AsyncStorage.removeItem(STORAGE_KEY);
     }
 
-    const toggleChipSelection = async (selectedValue, selectedChips, onChange) => {
-        const isSelected = selectedChips.includes(selectedValue);
+    const toggleChipSelection = async (selectedIndex, selectedChips, onChange) => {
+        const isSelected = selectedChips.includes(selectedIndex);
         const newSelectedChips = isSelected
-            ? selectedChips.filter((chip) => chip !== selectedValue)
-            : [...selectedChips, selectedValue];
+            ? selectedChips.filter((chip) => chip !== selectedIndex)
+            : [...selectedChips, selectedIndex];
 
-        console.log("📌 Horarios seleccionados:", newSelectedChips);
+        console.log("📌 Índices seleccionados:", newSelectedChips);
         onChange(newSelectedChips);
     };
+
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.primary10 }}>
@@ -107,7 +117,7 @@ const FilterModal = ({ navigation }) => {
                                     <CustomDropdown
                                         setSelected={field.onChange}
                                         selected={field.value}
-                                        data={LOCATIONS}
+                                        data={[...LOCATIONS].sort()}
                                         search={false}
                                         name="ubicación"
                                         showLabel={false}
@@ -168,7 +178,7 @@ const FilterModal = ({ navigation }) => {
                                     defaultValue={[]}
                                     render={({ field }) => (
                                         HORARIOS.map((horario, idx) => {
-                                            const isSelected = field.value.includes(horario);
+                                            const isSelected = field.value.includes(idx);
                                             return (
                                                 <Chip
                                                     title={horario}
@@ -177,7 +187,7 @@ const FilterModal = ({ navigation }) => {
                                                     titleStyle={{ color: !isSelected ? COLORS.primary : COLORS.white }}
                                                     color={COLORS.primary}
                                                     type={isSelected ? 'solid' : 'outline'}
-                                                    onPress={() => toggleChipSelection(horario, field.value, field.onChange)}
+                                                    onPress={() => toggleChipSelection(idx, field.value, field.onChange)}
                                                 />
                                             );
                                         })

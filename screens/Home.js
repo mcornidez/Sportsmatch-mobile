@@ -38,7 +38,10 @@ const Home = ({ navigation, route }) => {
     setLoading(true);
     try {
       console.log("📊 Filtros recibidos:", route.params?.filters);
-      const filters = route.params?.filters ? JSON.parse(route.params.filters) : undefined;
+
+      const filters = route.params?.filters ? route.params.filters : "";
+      console.log("✅ Filtros parseados correctamente:", filters);
+
 
       console.log("📡 Ejecutando fetchNearEvents con filtros:", filters);
       const data = await fetchNearEvents(currUser.id, filters);

@@ -75,37 +75,18 @@ export const fetchParticipants = async (eventId, status) => {
 };
 
 //TODO: clean this code
-export const fetchEvents = async (userId, filters) => {
-  let filterString = "";
+export const fetchEvents = async (userId, queryString) => {
 
-  if (filters !== undefined) {
-    if (filters.date !== "") filters.date = filters.date.split("T")[0];
-    else delete filters.date;
-
-    if (filters.expertise !== "")
-      filters.expertise = EXPERTISE.indexOf(filters.expertise) + 1;
-    else delete filters.expertise;
-
-    if (!filters.schedule || filters.schedule.length === 0)
-      delete filters.schedule;
-
-    if (filters.location === "") delete filters.location;
-
-    filterString = Object.entries(filters)
-        .map(([key, value]) => `&${key}=${value}`)
-        .join("");
-
-    console.log("📡 Parámetros de filtro formateados:", filterString);
-  }
 
   const token = await SecureStore.getItemAsync("userToken");
   console.log("🔑 Token obtenido para fetchEvents:", token);
 
   try {
-    console.log("📡 Realizando petición a:", `${API_URL}/events?userId=${userId}&filterOut=true${filterString}&limit=200`);
+    const url = `${API_URL}/events?userId=${userId}&filterOut=true${queryString ? `&${queryString}` : ""}&limit=200`;
+    console.log("📡 Realizando petición a:", url);
 
     const response = await fetch(
-        `${API_URL}/events?userId=${userId}&filterOut=true${filterString}&limit=200`,
+        url,
         {
           method: "GET",
           headers: {
@@ -124,9 +105,18 @@ export const fetchEvents = async (userId, filters) => {
       return { items: [] };
     }
 
-    const jsonResponse = await response.json();
-    console.log("✅ JSON parseado correctamente:", jsonResponse);
-    return jsonResponse;
+    const responseText = await response.text();
+    console.log("📡 Respuesta cruda de la API:", responseText);
+
+    try {
+      const jsonResponse = JSON.parse(responseText);
+      console.log("✅ JSON parseado correctamente:", jsonResponse);
+      return jsonResponse;
+    } catch (error) {
+      console.error("❌ Error al parsear JSON:", error, "Respuesta recibida:", responseText);
+      return { items: [] };
+    }
+
   } catch (error) {
     console.error("❌ Error en fetchEvents:", error);
     return { items: [] };
@@ -150,11 +140,11 @@ export const fetchMyEvents = async (userId) => {
   return response;
 };
 
-export const fetchNearEvents = async (userId, filters = undefined) => {
+export const fetchNearEvents = async (userId, queryString = "") => {
   try {
-    console.log("📡 Llamando a fetchEvents con userId:", userId, "y filtros:", filters);
+    console.log("📡 Llamando a fetchEvents con userId:", userId, "y filtros:", queryString);
 
-    const response = await fetchEvents(userId, filters);
+    const response = await fetchEvents(userId, queryString);
 
     if (!response || !response.items) {
       console.error("❌ Respuesta inválida en fetchNearEvents:", response);

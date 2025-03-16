@@ -20,6 +20,6 @@ export const LOCATIONS = [
     'Villa Pueyrredon',  'Villa Devoto',      'Liniers',
     'Versalles',         'Puerto Madero',     'Monserrat',
     'San Nicolas',       'Belgrano',          'Recoleta',
-    'Retiro',            'Nuñez',             'La Boca'
+    'Retiro',            'Núñez',             'La Boca'
   ]  
 export const HORARIOS = ["Mañana", "Tarde", "Noche"]
