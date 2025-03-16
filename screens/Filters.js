@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Platform, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Platform, TouchableOpacity, Switch } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { EXPERTISE, HORARIOS, LOCATIONS } from "../constants/data";
 import { formatDate, showDatepicker } from "../utils/datetime";
@@ -22,6 +22,7 @@ const FilterModal = ({ navigation }) => {
                 date: "",
                 expertise: "",
                 location: "",
+                onlyClubs: false,
             }
         }
     );
@@ -31,6 +32,7 @@ const FilterModal = ({ navigation }) => {
                 const storedFormValues = await AsyncStorage.getItem(STORAGE_KEY);
                 if (storedFormValues !== null) {
                     const formValues = JSON.parse(storedFormValues);
+                    // En loadFilterData (sacá la condición)
                     Object.entries(formValues).forEach(([fieldName, fieldValue]) => {
                         if (fieldValue !== undefined) {
                             if (fieldName === "date") {
@@ -39,7 +41,6 @@ const FilterModal = ({ navigation }) => {
                             if (fieldName === "schedule") {
                                 fieldValue = fieldValue.filter((chip) => typeof chip === "number");
                             }
-                            console.log("SETIE", fieldName, fieldValue);
                             setValue(fieldName, fieldValue, { shouldDirty: true });
                         }
                     });
@@ -54,6 +55,7 @@ const FilterModal = ({ navigation }) => {
     const onSubmit = async (data) => {
         try {
             console.log("📡 Guardando filtros en AsyncStorage:", data);
+
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
             const queryParams = new URLSearchParams();
@@ -73,8 +75,10 @@ const FilterModal = ({ navigation }) => {
                 queryParams.append("schedule", data.schedule.join(","));
             }
 
+            console.log("Only clubs filter: ", data.onlyClubs)
+
             console.log("🔍 Filtros enviados a Home:", queryParams.toString());
-            navigation.navigate("Inicio", { filters: queryParams.toString() });
+            navigation.navigate("Inicio", { filters: queryParams.toString(), onlyClubs: data.onlyClubs });
 
         } catch (error) {
             console.error('❌ Error guardando los filtros:', error);
@@ -88,9 +92,16 @@ const FilterModal = ({ navigation }) => {
 
 
     const cleanFilters = () => {
-        reset();
+        reset({
+            schedule: [],
+            date: "",
+            expertise: "",
+            location: "",
+            onlyClubs: false,
+        });
         AsyncStorage.removeItem(STORAGE_KEY);
-    }
+    };
+
 
     const toggleChipSelection = async (selectedIndex, selectedChips, onChange) => {
         const isSelected = selectedChips.includes(selectedIndex);
@@ -111,7 +122,7 @@ const FilterModal = ({ navigation }) => {
                 </Text>
                 <View style={{flex: 1,flexDirection: 'column', gap: 30, justifyContent: 'center'}}>
                         <View>
-                            <Text style={styles.sectionTitle}>Ubicacion: </Text>
+                            <Text style={styles.sectionTitle}>Ubicación: </Text>
                             <Controller control={control} rules={{ required: false }} render={({ field }) => {
                                 return (
                                     <CustomDropdown
@@ -196,6 +207,23 @@ const FilterModal = ({ navigation }) => {
                                 />
 
                             </View>
+
+                            <View>
+                                <Text style={styles.sectionTitle}>Sólo eventos organizados por clubes:</Text>
+                                <Controller
+                                    control={control}
+                                    name="onlyClubs"
+                                    render={({ field: { value, onChange } }) => (
+                                        <Switch
+                                            value={value}
+                                            onValueChange={onChange}
+                                            trackColor={{ false: "#767577", true: COLORS.primary }}
+                                            thumbColor="#ffffff"
+                                        />
+                                    )}
+                                />
+                            </View>
+
 
                         </View>
                 </View>

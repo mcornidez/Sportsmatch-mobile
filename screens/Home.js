@@ -26,6 +26,13 @@ const Home = ({ navigation, route }) => {
   const [sports, setSports] = useState([]);
   const {currUser} = useContext(UserContext);
   const [loadingSports, setLoadingSports] = useState(true);
+  const onlyClubs = route.params?.onlyClubs ?? false;
+
+  useEffect(() => {
+    console.log("🔄 useEffect activado. Cargando eventos...");
+    loadEvents();
+  }, [route.params?.filters, route.params?.onlyClubs]);
+
 
   const loadEvents = async () => {
     if (!currUser || !currUser.id) {
@@ -52,8 +59,13 @@ const Home = ({ navigation, route }) => {
         setFilteredEventList([]);
       } else {
         console.log("✅ Eventos cargados correctamente:", data.items.length, "eventos");
-        setEventsList(data.items);
-        setFilteredEventList(data.items);
+        let eventos = data.items;
+        console.log("Only clubs: ", onlyClubs)
+        if (onlyClubs) {
+          eventos = eventos.filter(e => e.organizerType  === "club");
+        }
+        setEventsList(eventos);
+        setFilteredEventList(eventos);
       }
     } catch (error) {
       console.error("❌ Error en loadEvents:", error);
@@ -70,7 +82,7 @@ const Home = ({ navigation, route }) => {
       useCallback(() => {
         console.log("🔄 useFocusEffect: Re-cargando eventos...");
         loadEvents();
-      }, [currUser, route.params?.filters])
+      }, [currUser, route.params?.filters, route.params?.onlyClubs])
   );
 
 
@@ -161,8 +173,14 @@ const Home = ({ navigation, route }) => {
     try {
       const jsonData = await fetchNearEvents(currUser.id);
       console.log("✅ Eventos refrescados:", jsonData.items.length);
-      setEventsList(jsonData.items);
-      setFilteredEventList(jsonData.items);
+      let eventos = jsonData.items || [];
+      console.log("Only clubs: ", onlyClubs)
+      if (onlyClubs) {
+        eventos = eventos.filter(e => e.organizerType === "club");
+      }
+
+      setEventsList(eventos);
+      setFilteredEventList(eventos);
     } catch (error) {
       console.error("❌ Error al refrescar eventos:", error);
     }
