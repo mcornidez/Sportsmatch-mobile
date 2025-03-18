@@ -1,6 +1,6 @@
-# SportsMatch Mobile
+# SportsMatch+ Mobile
 
-Este repositorio contiene el código fuente de la aplicación móvil de **SportsMatch**, desarrollada en **React Native con Expo**. Permite a los usuarios buscar eventos deportivos, reservar canchas y gestionar su participación en partidos.
+Este repositorio contiene el código fuente de la aplicación móvil de **SportsMatch+**, desarrollada en **React Native con Expo**. Permite a los usuarios buscar eventos deportivos, reservar canchas y gestionar su participación en partidos.
 
 ## Tecnologías utilizadas
 
@@ -24,7 +24,7 @@ Para ejecutar la aplicación en modo desarrollo, sigue estos pasos:
 
    ```sh
    git clone <URL_DEL_REPO>
-   cd sportsmatch-mobile
+   cd SportsMatch+-mobile
    npm install
    ```
 

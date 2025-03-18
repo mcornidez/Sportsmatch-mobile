@@ -93,7 +93,7 @@ const Register = ({ navigation }) => {
               paddingTop: 50,
             }}
           >
-            SportsMatch
+            SportsMatch+
           </Text>
           <View style={styles.inputContainer}>
             <Text style={styles.inputText}>Nombre</Text>
