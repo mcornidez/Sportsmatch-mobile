@@ -12,21 +12,22 @@ import MyEventList from "../components/MyEventList";
 import { NoContentMessage } from "../components/NoContentMessage";
 import { UserContext } from "../contexts/UserContext";
 import { StatusBar } from "expo-status-bar";
+import {DateTime} from "luxon";
 
-const renderList = (data) => {
-  return <MyEventList data={data} />;
+const renderList = (data, refetchEvent) => {
+  return <MyEventList data={data} refetchEvent={refetchEvent} />;
 };
 
 const renderJoinedItem = ({ item }) => {
   return <Card props={item} />;
 };
 
-const FirstRoute = (myEvents, loading) => (
+const FirstRoute = (myEvents, loading, refetchEvent) => (
   <SafeAreaView style={{ flex: 1 }}>
     {loading ? <ActivityIndicator size="large" color={COLORS.primary} style={{ alignSelf: "center", marginTop: "50%" }} /> :
       <FlatList
         data={myEvents.slice().reverse()}
-        renderItem={(data) => renderList(data)}
+        renderItem={(data) => renderList(data, refetchEvent)}
         style={{ flex: 1, marginBottom: 8 }}
         contentContainerStyle={myEvents.length != 0 ? { flexGrow: 1 } : styles.noContentContainer}
         keyExtractor={(item, index) => {
@@ -75,7 +76,7 @@ const MyEvents = () => {
   const renderScene = ({ route }) => {
     switch (route.key) {
       case "first":
-        return FirstRoute(myEvents, loadingMyEvents);
+        return FirstRoute(myEvents, loadingMyEvents, refetchSingleEvent);
       case "second":
         return SecondRoute(joinedEvents, loadingJoinedEvents);
       default:
@@ -85,8 +86,21 @@ const MyEvents = () => {
 
   useEffect(() => {
     const getMyEvents = async () => {
+      setLoadingMyEvents(true);
       const data = await fetchMyEvents(currUser.id);
-      setMyEvents(data.items);
+
+      const sortedEvents = data.items.sort((a, b) => {
+        const dateA = DateTime.fromISO(a.schedule.replace(" ", "T"));
+        const dateB = DateTime.fromISO(b.schedule.replace(" ", "T"));
+
+        if (!dateA.isValid) return 1;
+        if (!dateB.isValid) return -1;
+
+        return dateB.toMillis()- dateA.toMillis() ;
+      });
+
+      setMyEvents(sortedEvents);
+      setLoadingMyEvents(false);
     };
 
     if (isFocused) {
@@ -96,13 +110,28 @@ const MyEvents = () => {
 
   useEffect(() => {
     const getJoinedEvents = async () => {
+      setLoadingJoinedEvents(true);
       const mockData = await fetchJoinedEvents(currUser.id);
       setJoinedEvents(mockData.items);
+      setLoadingJoinedEvents(false);
     };
     if (isFocused) {
       getJoinedEvents().then(() => setLoadingJoinedEvents(false)).catch((err) => console.log(err));
     }
   }, [isFocused]);
+
+  const refetchSingleEvent = async (eventId) => {
+    const updated = await fetchMyEvents(currUser.id);
+    const sortedEvents = updated.items.sort((a, b) => {
+      const dateA = DateTime.fromISO(a.schedule.replace(" ", "T"));
+      const dateB = DateTime.fromISO(b.schedule.replace(" ", "T"));
+      if (!dateA.isValid) return 1;
+      if (!dateB.isValid) return -1;
+      return dateB.toMillis() - dateA.toMillis();
+    });
+    setMyEvents(sortedEvents);
+  };
+
 
   return (
       <TabView

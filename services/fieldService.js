@@ -36,7 +36,7 @@ export const getFieldsWithLocation = async (location) => {
     }
 
     try {
-        const clubsResponse = await fetch(`${API_URL}/clubs?location=${encodeURIComponent(location)}`, {
+        const response = await fetch(`${API_URL}/fields`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -44,48 +44,24 @@ export const getFieldsWithLocation = async (location) => {
             },
         });
 
-        if (!clubsResponse.ok) {
-            throw new Error(`Error HTTP al obtener clubes: ${clubsResponse.status}`);
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
         }
 
-        const clubs = await clubsResponse.json();
+        const fields = await response.json();
 
-        if (!Array.isArray(clubs) || clubs.length === 0) {
-            return [];
-        }
-
-        const clubIds = clubs.map((club) => club.club_id);
-
-        const fieldsRequests = clubIds.map((clubId) =>
-            fetch(`${API_URL}/fields?clubId=${clubId}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "c-api-key": token,
-                },
-            })
-                .then((res) => {
-                    return res.json();
-                })
-                .then((json) => {
-                    return json;
-                })
-                .catch((err) => {
-                    console.error(`❌ Error en fetch /fields?clubId=${clubId}:`, err);
-                    return [];
-                })
+        // Filtrás directamente por ubicación desde la respuesta
+        const filteredFields = fields.filter(
+            (field) => field.location && field.location.toLowerCase() === location.toLowerCase()
         );
 
-        const fieldsResponses = await Promise.all(fieldsRequests);
-        const allFields = fieldsResponses.flat();
-
-
-        return allFields;
+        return filteredFields;
     } catch (error) {
         console.error("❌ Error obteniendo canchas get fields with location:", error);
         return [];
     }
 };
+
 
 const formatToISO = (date) => {
     return DateTime.fromFormat(date, "d/M/yyyy").toFormat("yyyy-MM-dd");

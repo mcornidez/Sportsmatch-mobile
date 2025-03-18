@@ -14,7 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { DateTime } from "luxon";
 import { getSports } from "../services/sportService";
 
-const MyEventList = ({ data }) => {
+const MyEventList = ({ data, refetchEvent }) => {
   const [participantList, setParticipantsList] = useState([]);
   const [remaining, setRemaining] = useState(+data.item.remaining);
   const navigation = useNavigation();
@@ -41,9 +41,15 @@ const MyEventList = ({ data }) => {
     }, []);
 
     let eventDate = DateTime.fromFormat(data.item.schedule, "yyyy-MM-dd HH:mm:ssZZ", { zone: "utc" });
+    const today = DateTime.utc();
+    const daysDiff = today.diff(eventDate, "days").days;
 
     if (!eventDate.isValid) {
         eventDate = DateTime.invalid("Fecha inválida");
+    }
+
+    if (data.item.eventStatus === EVENT_STATUS.FINALIZED && daysDiff > 7) {
+        return null;
     }
 
     const formattedDate = eventDate.isValid ? `${eventDate.day}/${eventDate.month}` : "--/--";
@@ -58,6 +64,7 @@ const MyEventList = ({ data }) => {
         " from event: ",
         eventId
       );
+      await refetchEvent(eventId);
       setParticipantsList(
         participantList.filter(
           (participant) => participant.userId !== participantId
@@ -146,7 +153,8 @@ const MyEventList = ({ data }) => {
             listData.item,
             data.item.id,
             handleRemoveParticipant,
-            data.item.eventStatus
+            data.item.eventStatus,
+              refetchEvent
           )
         }
         style={{ flex: 1 }}
@@ -171,13 +179,14 @@ const MyEventList = ({ data }) => {
   );
 };
 
-const renderItem = (data, eventId, handleRemoveParticipant, eventStatus) => {
+const renderItem = (data, eventId, handleRemoveParticipant, eventStatus, refetchEvent) => {
   return (
     <MyEventCard
       props={data}
       eventId={eventId}
       handleRemoveParticipant={handleRemoveParticipant}
       eventStatus={eventStatus}
+      refetchEvent={refetchEvent}
     />
   );
 };

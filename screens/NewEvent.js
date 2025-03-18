@@ -302,6 +302,11 @@ const NewEvent = () => {
                               field.onChange(selecteDate)
                           }
                           minimumDate={new Date()}
+                          maximumDate={(() => {
+                            const max = new Date();
+                            max.setDate(max.getDate() + 14);
+                            return max;
+                          })()}
                       />
                   );
                 }}
@@ -368,7 +373,17 @@ const NewEvent = () => {
                             ? onChange
                             : () => setModalVisible(true)
                         }
-                        currentFilter={value}
+                        currentFilter={qty === value}
+                        customStyle={{
+                          paddingHorizontal: 18,
+                          paddingVertical: 6,
+                          borderRadius: 20,
+                          borderWidth: 1,
+                          borderColor: COLORS.primary,
+                          marginHorizontal: 5,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       />
                     );
                   });
@@ -396,7 +411,17 @@ const NewEvent = () => {
                         key={index}
                         props={{ title: duration }}
                         handlePress={onChange}
-                        currentFilter={value}
+                        currentFilter={duration === value}
+                        customStyle={{
+                          paddingHorizontal: 18,
+                          paddingVertical: 6,
+                          borderRadius: 20,
+                          borderWidth: 1,
+                          borderColor: COLORS.primary,
+                          marginHorizontal: 5,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       />
                     );
                   });

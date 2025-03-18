@@ -36,115 +36,74 @@ const SearchFields = () => {
         setLoading(true);
         setRefreshing(true);
         setFields([]);
-        try {
-            let allFields = [];
 
-            if (location === undefined) {
-                allFields = await getFields();
-            } else {
-                allFields = await getFieldsWithLocation(location);
-            }
+        try {
+            // 1️⃣ Obtener canchas
+            let allFields = location ? await getFieldsWithLocation(location) : await getFields();
 
             if (!Array.isArray(allFields) || allFields.length === 0) {
                 setFields([]);
                 return;
             }
 
+            // 2️⃣ Filtrar canchas por deporte
             const filteredFields = allFields.filter(field =>
                 field.sports.some(sport => sport.id === sportId)
             );
 
             const uniqueClubIds = [...new Set(filteredFields.map(field => field.club_id))];
 
-            const clubs = await Promise.all(uniqueClubIds.map(async (clubId) => {
-                try {
-                    const club = await getClubById(clubId);
-                    return club;
-                } catch (error) {
-                    console.error(`❌ Error obteniendo el club ${clubId}:`, error);
-                    return null;
-                }
-            }));
-
-            const validClubs = clubs.filter(club => club !== null);
-
-            const clubMap = validClubs.reduce((acc, club) => {
-                acc[club.id] = {
-                    name: club.name,
-                    location: club.location || "Ubicación no disponible",
-                    address: club.address || "Dirección no disponible",
-                };
+            const clubs = await Promise.all(uniqueClubIds.map(clubId => getClubById(clubId)));
+            const clubMap = clubs.reduce((acc, club) => {
+                acc[club.id] = club;
                 return acc;
             }, {});
 
-
-            let allFieldTimeslots = [];
+            // 3️⃣ Obtener slots de disponibilidad para cada cancha
+            const allFieldSlots = [];
 
             for (const field of filteredFields) {
-                try {
-                    const availableSlots = await getAvailableTimeslots(field.id, date);
+                const slots = await getAvailableTimeslots(field.id, date);
+                const validSlots = slots.filter(s => s.slotStatus === "available");
 
-                    if (availableSlots.length > 0) {
-                        const fieldTimeslots = availableSlots.map(slot => {
-                            const startTime = DateTime.fromFormat(slot.start_time, "HH:mm:ss");
-                            const endTime = DateTime.fromFormat(slot.end_time, "HH:mm:ss");
-                            const slotDuration = endTime.diff(startTime, "minutes").minutes;
-                            const clubInfo = clubMap[field.club_id] || { name: "Club desconocido", location: "Ubicación no disponible", address: "Dirección no disponible" };
+                validSlots.forEach(slot => {
+                    const startTime = DateTime.fromFormat(slot.start_time, "HH:mm:ss");
+                    const endTime = DateTime.fromFormat(slot.end_time, "HH:mm:ss");
+                    const slotDuration = endTime.diff(startTime, "minutes").minutes;
+                    const clubInfo = clubMap[field.club_id] || {};
 
-                            return {
-                                ...field,
-                                clubName: clubInfo.name,
-                                clubLocation: clubInfo.location,
-                                clubAddress: clubInfo.address,
-                                slotStart: slot.start_time,
-                                slotEnd: slot.end_time,
-                                slotId: slot.id,
-                                slotDuration: slotDuration,
-                            };
-                        });
-
-                        allFieldTimeslots = [...allFieldTimeslots, ...fieldTimeslots];
-                    }
-                } catch (error) {
-                    console.error(`❌ Error obteniendo disponibilidad de la cancha ${field.id}:`, error);
-                }
+                    allFieldSlots.push({
+                        ...field,
+                        clubName: clubInfo.name || "Club desconocido",
+                        clubLocation: clubInfo.location || "Ubicación no disponible",
+                        clubAddress: clubInfo.address || "Dirección no disponible",
+                        slotId: slot.id,
+                        slotStart: slot.start_time,
+                        slotEnd: slot.end_time,
+                        slotDuration,
+                    });
+                });
             }
 
+            // 4️⃣ Filtrado por ±1 slotDuration
             const userTime = DateTime.fromFormat(time, "HH:mm");
-            const exactDuration = parseInt(duration, 10);
-            let sortedSlots = [];
 
-            // 1️⃣ Buscar coincidencia exacta en fecha, hora y duración
-            const exactMatches = allFieldTimeslots.filter(slot =>
-                slot.slotStart === userTime.toFormat("HH:mm:ss") &&
-                slot.slotDuration === exactDuration
-            );
-            sortedSlots = [...sortedSlots, ...exactMatches];
+            const matchedSlots = allFieldSlots.filter(slot => {
+                const slotStartTime = DateTime.fromFormat(slot.slotStart, "HH:mm:ss");
+                const slotEndTime = DateTime.fromFormat(slot.slotEnd, "HH:mm:ss");
+                const userDateTime = DateTime.fromFormat(time, "HH:mm");
 
-            // 2️⃣ Buscar ±2 horas con la misma duración
-            const flexibleTimeMatches = allFieldTimeslots.filter(slot => {
-                const slotTime = DateTime.fromFormat(slot.slotStart, "HH:mm:ss");
-                return (
-                    Math.abs(slotTime.diff(userTime, "minutes").minutes) <= 120 &&
-                    slot.slotDuration === exactDuration &&
-                    !sortedSlots.includes(slot)
-                );
+                const diff = userDateTime.diff(slotStartTime, "minutes").minutes;
+
+                // Aceptamos si userTime está máximo 1 slotDuration (casi 2) después del slotStart
+                return diff >= 0 && diff <= (slot.slotDuration*2-1);
             });
-            sortedSlots = [...sortedSlots, ...flexibleTimeMatches];
 
-            // 3️⃣ Buscar variando la duración pero manteniendo ±2 horas
-            const flexibleDurationMatches = allFieldTimeslots.filter(slot => {
-                const slotTime = DateTime.fromFormat(slot.slotStart, "HH:mm:ss");
-                return (
-                    Math.abs(slotTime.diff(userTime, "minutes").minutes) <= 120 &&
-                    !sortedSlots.includes(slot)
-                );
-            });
-            sortedSlots = [...sortedSlots, ...flexibleDurationMatches];
 
-            setFields(sortedSlots);
+
+            setFields(matchedSlots);
         } catch (error) {
-            console.error("❌ Error obteniendo canchas fetch fields:", error);
+            console.error("❌ Error obteniendo canchas:", error);
             setFields([]);
         } finally {
             setLoading(false);
@@ -229,7 +188,7 @@ const SearchFields = () => {
                 </Text>
 
                 <Text style={[styles.cardSmText, { color: COLORS.white }]}>
-                    {item.clubLocation || "Ubicación no disponible"}
+                    {item.location || "Ubicación no disponible"}
                 </Text>
             </View>
         </TouchableOpacity>

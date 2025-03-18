@@ -19,10 +19,8 @@ import DefaultProfile from "../assets/default-profile.png";
 import { fetchUserImage } from "../services/userService";
 import CustomButton from "./CustomButton";
 
-const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) => {
-  const [userAccepted, setUserAccepted] = useState(
-    props.participantStatus
-  );
+const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus, refetchEvent }) => {
+  const [userAccepted, setUserAccepted] = useState(props.participantStatus);
   const [modalVisible, setModalVisible] = useState(false);
   const [userRate, setUserRate] = useState(3);
   const [image, setImage] = useState(null);
@@ -56,14 +54,17 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus }) =
   };
 
   const acceptUser = async () => {
-    console.log(props);
+    console.log("➡️ Intentando aceptar participante:", props.userId);
     try {
-      await acceptParticipant(eventId, props.userId);
+      const response = await acceptParticipant(eventId, props.userId);
+      console.log("✅ Participante aceptado en la API:", response);
       setUserAccepted(true);
+      await refetchEvent(eventId);
     } catch (error) {
-      console.error(error);
+      console.error("❌ Error al aceptar participante:", error);
     }
   };
+
 
   const sendMessage = () => {
     Linking.openURL(
