@@ -113,6 +113,16 @@ const Card = ({props}) => {
             />);
     }
 
+    const formatName = (name) => {
+        if (name.length > 20) {
+            const firstLine = name.slice(0, 10);
+            const secondLine = name.slice(10, 17) + "...";
+            return `${firstLine}\n${secondLine}`;
+        }
+        return name;
+    };
+
+
     return (
         <>
             <TouchableOpacity style={styles.card} onPress={handlePress}>
@@ -152,7 +162,19 @@ const Card = ({props}) => {
                             source={props.owner.imageUrl ? { uri: props.owner.imageUrl } : DefaultProfile}
                             containerStyle={styles.avatar}
                         />
-                        <Text style={styles.cardMidText}>{props.owner.firstName}</Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6}}>
+                            <Text
+                                style={styles.cardMidText}
+                                numberOfLines={2}
+                            >
+                                {formatName(props.owner.firstName)}
+                            </Text>
+                            {props.organizerType === "club" && (
+                                <View style={styles.badgeClub}>
+                                    <Text style={styles.badgeText}>Club</Text>
+                                </View>
+                            )}
+                        </View>
                     </View>
                     <View style={styles.verticalSection}>
                         <View>
@@ -298,6 +320,27 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 2,
         elevation: 5,
+    },
+    badgeContainer: {
+        backgroundColor: COLORS.secondary,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 12,
+        marginTop: 4,
+        alignSelf: 'flex-start',
+    },
+    badgeText: {
+        color: COLORS.white,
+        fontWeight: "bold",
+        fontSize: 12,
+    },
+    badgeClub: {
+        backgroundColor: COLORS.primary,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 12,
+        alignSelf: 'flex-start',
+        marginBottom: 4,
     },
 });
 

@@ -8,21 +8,21 @@ import {
     ActivityIndicator,
     Alert
 } from "react-native";
-import {useNavigation, useRoute} from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "../constants";
+import {useNavigation, useRoute, useFocusEffect} from "@react-navigation/native";
+import {Ionicons} from "@expo/vector-icons";
+import {COLORS} from "../constants";
 import {DateTime} from "luxon";
-import { getClubById } from "../services/clubService";
-import { getPaymentsByReservationId } from "../services/paymentsService";
+import {getClubById} from "../services/clubService";
+import {getPaymentsByReservationId} from "../services/paymentsService";
 import {cancelReservation, fetchReservationsByEvent} from "../services/reservationService";
 import CustomButton from "../components/CustomButton";
 import * as SecureStore from "expo-secure-store";
-import { UserContext } from "../contexts/UserContext";
+import {UserContext} from "../contexts/UserContext";
 
 const ReservationDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { eventId, isOwner, eventDate, eventDuration } = route.params;
+    const {eventId, isOwner, eventDate, eventDuration} = route.params;
     const [reservationData, setReservationData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [clubAddress, setClubAddress] = useState(null);
@@ -31,31 +31,33 @@ const ReservationDetail = () => {
 
     const parsedEventDate = eventDate ? DateTime.fromISO(eventDate) : null;
 
-    useEffect(() => {
-        const fetchReservation = async () => {
-            try {
-                const reservations = await fetchReservationsByEvent(eventId);
-                if (Array.isArray(reservations) && reservations.length > 0) {
-                    const cancelledReservation = reservations.find(r => r.status === "cancelled");
-                    if (cancelledReservation) {
-                        setReservationData({ ...cancelledReservation, isCancelled: true });
+    useFocusEffect(
+        React.useCallback(() => {
+            const fetchReservation = async () => {
+                try {
+                    const reservations = await fetchReservationsByEvent(eventId);
+                    if (Array.isArray(reservations) && reservations.length > 0) {
+                        const cancelledReservation = reservations.find(r => r.status === "cancelled");
+                        if (cancelledReservation) {
+                            setReservationData({...cancelledReservation, isCancelled: true});
+                        } else {
+                            // Asumimos que si no hay canceladas, tomamos la primera activa
+                            setReservationData({...reservations[0], isCancelled: false});
+                        }
                     } else {
-                        // Asumimos que si no hay canceladas, tomamos la primera activa
-                        setReservationData({ ...reservations[0], isCancelled: false });
+                        setReservationData(null);
                     }
-                } else {
+                } catch (error) {
+                    console.error("❌ Error obteniendo la reserva:", error);
                     setReservationData(null);
+                } finally {
+                    setLoading(false);
                 }
-            } catch (error) {
-                console.error("❌ Error obteniendo la reserva:", error);
-                setReservationData(null);
-            } finally {
-                setLoading(false);
-            }
-        };
+            };
 
-        fetchReservation();
-    }, [eventId]);
+            fetchReservation();
+        }, [eventId])
+    );
 
     useEffect(() => {
         const fetchClubAddress = async () => {
@@ -80,7 +82,7 @@ const ReservationDetail = () => {
     }, [reservationData]);
 
     if (loading) {
-        return <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: "50%" }} />;
+        return <ActivityIndicator size="large" color={COLORS.primary} style={{marginTop: "50%"}}/>;
     }
 
     if (!reservationData) {
@@ -91,7 +93,7 @@ const ReservationDetail = () => {
         );
     }
 
-    const { field, timeSlots, cost, status, payment } = reservationData;
+    const {field, timeSlots, cost, status, payment} = reservationData;
     const isPaid = payment?.isPaid || false;
     const paymentDate = payment?.paymentDate;
 
@@ -130,7 +132,7 @@ const ReservationDetail = () => {
             "Confirmar cancelación",
             "¿Estás seguro de que deseas cancelar esta reserva?",
             [
-                { text: "No", style: "cancel", onPress: () => console.log("🚫 Cancelación abortada por el usuario") },
+                {text: "No", style: "cancel", onPress: () => console.log("🚫 Cancelación abortada por el usuario")},
                 {
                     text: "Sí, cancelar",
                     onPress: async () => {
@@ -165,19 +167,17 @@ const ReservationDetail = () => {
         duration = endTime.diff(startTime, "minutes").minutes;
         formattedDate = DateTime.fromISO(timeSlots[0].date).toFormat("dd/MM/yyyy");
         formattedStartTime = startTime.toFormat("HH:mm");
-    }
-    else if (parsedEventDate) {
+    } else if (parsedEventDate) {
         let eventAdjusted = parsedEventDate;
 
         if (reservationData?.status === "cancelled") {
-            eventAdjusted = parsedEventDate.plus({ hours: 3 });
+            eventAdjusted = parsedEventDate.plus({hours: 3});
         }
 
         formattedDate = eventAdjusted.toFormat("dd/MM/yyyy");
         formattedStartTime = eventAdjusted.toFormat("HH:mm");
         duration = eventDuration || 0;
-    }
-    else {
+    } else {
         formattedDate = "No disponible";
         formattedStartTime = "No disponible";
         duration = 0;
@@ -190,7 +190,7 @@ const ReservationDetail = () => {
             <View style={styles.detailsContainer}>
                 <Text style={styles.detailLabel}>Ubicación:</Text>
                 {loadingAddress ? (
-                    <ActivityIndicator size="small" color={COLORS.primary} />
+                    <ActivityIndicator size="small" color={COLORS.primary}/>
                 ) : (
                     <Text style={styles.detailValue}>{clubAddress || "No disponible"}</Text>
                 )}
@@ -233,9 +233,18 @@ const ReservationDetail = () => {
                         <Text style={styles.statusLabel}>Estado del pago de la seña:</Text>
                         {payment.isRefunded ? (
                             <>
-                                <Text style={[styles.statusValue, { color: "red" }]}>Reembolsado</Text>
-                                <Text style={styles.detailText}>Monto reembolsado: ${Number(payment.refundAmount).toFixed(2)}</Text>
-                                <Text style={styles.detailText}>Fecha: {DateTime.fromISO(payment.refundDate).toFormat('dd/MM/yyyy HH:mm')}</Text>
+                                <Text style={[styles.statusValue, {color: "green"}]}>Reembolsado</Text>
+                                <Text style={styles.detailText}>Monto reembolsado:
+                                    ${Number(payment.refundAmount).toFixed(2)}</Text>
+                                <Text
+                                    style={styles.detailText}>Fecha: {DateTime.fromISO(payment.refundDate).toFormat('dd/MM/yyyy HH:mm')}</Text>
+                            </>
+                        ) : status === "cancelled" && !payment.isRefunded ? (
+                            <>
+                                <Text style={[styles.statusValue, { color: "red" }]}>No reembolsado</Text>
+                                <Text style={styles.noteText}>
+                                    La seña no fue devuelta porque la reserva se canceló con menos de 24hs de anticipación.
+                                </Text>
                             </>
                         ) : (
                             <>
@@ -254,7 +263,7 @@ const ReservationDetail = () => {
                                                 Caso contrario, el club puede cancelar la reserva.
                                             </Text>
                                             <CustomButton
-                                                title={`Pagar seña ($${(cost / 2).toFixed(2)})`}
+                                                title={`Pagar seña`}
                                                 onPress={handlePayment}
                                                 color={COLORS.primary}
                                                 style={styles.actionButton}
@@ -280,7 +289,8 @@ const ReservationDetail = () => {
                                                 style={styles.cancelButton}
                                             />
                                             <Text style={styles.noteText}>
-                                                Recordá que si cancelas con 24hs de anticipación, se te devolverá la seña.
+                                                Recordá que si cancelas con 24hs de anticipación, se te devolverá la
+                                                seña.
                                             </Text>
                                         </>
                                     )}
@@ -327,7 +337,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         width: "100%",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,

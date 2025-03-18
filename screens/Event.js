@@ -30,17 +30,17 @@ import * as SecureStore from "expo-secure-store";
 import { getSports } from "../services/sportService";
 
 const Event = ({ route }) => {
-  const { eventId, userImgURL, ownerRating, ownerId } = route.params;
+  const {eventId, userImgURL, ownerRating, ownerId} = route.params;
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [eventParticipants, setEventParticipants] = useState(null);
   const [userStatus, setUserStatus] = useState(USER_STATUS.UNENROLLED);
   const [sports, setSports] = useState([]);
   const [imageUrl, setimageUrl] = useState(userImgURL);
-  const { currUser } = useContext(UserContext);
+  const {currUser} = useContext(UserContext);
   const [eventData, setEventData] = useState(null);
   const [reservationData, setReservationData] = useState(null);
-  const { signOut } = useContext(AuthContext);
+  const {signOut} = useContext(AuthContext);
   const navigation = useNavigation();
   const [loadingReservation, setLoadingReservation] = useState(true);
 
@@ -84,7 +84,7 @@ const Event = ({ route }) => {
         console.error("ERROR fetching user data", err);
       }
     }
-    }, [eventId, userImgURL, ownerId]);
+  }, [eventId, userImgURL, ownerId]);
 
   useEffect(() => {
     if (eventData)
@@ -96,15 +96,15 @@ const Event = ({ route }) => {
   useEffect(() => {
     if (eventParticipants) {
       eventParticipants.length > 0 &&
-        eventParticipants.forEach((participant) => {
-          if (participant.userId == currUser.id) {
-            if (participant.participantStatus === true) {
-              setUserStatus(USER_STATUS.ENROLLED);
-            } else {
-              setUserStatus(USER_STATUS.REQUESTING);
-            }
+      eventParticipants.forEach((participant) => {
+        if (participant.userId == currUser.id) {
+          if (participant.participantStatus === true) {
+            setUserStatus(USER_STATUS.ENROLLED);
+          } else {
+            setUserStatus(USER_STATUS.REQUESTING);
           }
-        });
+        }
+      });
       setLoading(false);
     }
   }, [eventParticipants]);
@@ -151,22 +151,22 @@ const Event = ({ route }) => {
   const renderParticipantStatusMessage = () => {
     if (eventData.status === EVENT_STATUS.FINALIZED)
       return (
-        <Text style={styles.participantStatusText}>Evento finalizado!</Text>
+          <Text style={styles.participantStatusText}>Evento finalizado!</Text>
       );
     switch (userStatus) {
       case USER_STATUS.UNENROLLED:
         return null;
       case USER_STATUS.REQUESTING:
         return (
-          <Text style={styles.participantStatusText}>
-            Esperando confirmación del creador del evento
-          </Text>
+            <Text style={styles.participantStatusText}>
+              Esperando confirmación del creador del evento
+            </Text>
         );
       case USER_STATUS.ENROLLED:
         return (
-          <Text style={styles.participantStatusText}>
-            Ya estás anotado al evento!
-          </Text>
+            <Text style={styles.participantStatusText}>
+              Ya estás anotado al evento!
+            </Text>
         );
     }
   };
@@ -176,17 +176,15 @@ const Event = ({ route }) => {
       return null;
     }
 
-    if (eventData.status === EVENT_STATUS.FINALIZED) {
+    if (eventData.status === EVENT_STATUS.FINALIZED || eventData.status === EVENT_STATUS.IN_PROGRESS) {
       return null;
     }
 
     const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
-
     const allCancelled = Array.isArray(reservationData) && reservationData.every(r => r.status === "cancelled");
-
     const hasNoReservations = !reservationData || reservationData.length === 0;
 
-    const luxonDate = DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ", { zone: "utc" });
+    const luxonDate = DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ", {zone: "utc"});
     const jsDate = luxonDate.toJSDate();
     jsDate.setHours(jsDate.getHours() + 3);
 
@@ -231,7 +229,7 @@ const Event = ({ route }) => {
   };
 
   let eventDate = eventData?.schedule
-      ? DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ", { zone: "utc" })
+      ? DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ", {zone: "utc"})
       : null;
 
   const formattedDate = eventDate ? `${eventDate.day} de ${MONTHS[eventDate.month - 1]}` : "-- de --";
@@ -244,16 +242,21 @@ const Event = ({ route }) => {
   const handleReservationDetail = () => {
     const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
 
-    navigation.navigate("ReservationDetail", { eventId, isOwner, eventDate, eventDuration });
+    navigation.navigate("ReservationDetail", {eventId, isOwner, eventDate, eventDuration});
   };
 
-  return loading || !eventData ? (
-    <ActivityIndicator
-      size="large"
-      color={COLORS.primary}
-      style={{ marginTop: "70%" }}
-    />
-  ) : (
+  if (loading || !eventData) {
+    return (
+        <ActivityIndicator
+            size="large"
+            color={COLORS.primary}
+            style={{ marginTop: "70%" }}
+        />
+    );
+  }
+
+  const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
+  return (
     <View style={styles.eventContainer}>
       <View style={styles.eventHeader}>
         <Avatar
@@ -309,6 +312,23 @@ const Event = ({ route }) => {
           </Text>
         </View>
 
+        {/* Si hay reserva activa y clubAddress */}
+        {reservationData && reservationData.some(r => r.status === "confirmed" || r.status === "pending" || r.status === "completed") && (
+            <>
+              <Divider width={1} />
+              <View style={styles.bodySection}>
+                <Text style={styles.bodyBigText}>Dirección:</Text>
+                <Text
+                    style={styles.bodyMidText}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                >
+                  {reservationData[0]?.field.address || "Dirección no disponible"}
+                </Text>
+              </View>
+            </>
+        )}
+
         <Divider width={1} />
         {eventData.description && eventData.description.trim() !== "" && (
             <>
@@ -327,31 +347,33 @@ const Event = ({ route }) => {
         <Divider width={1} />
         {!ownerId && renderParticipantStatusMessage()}
 
+
         {loadingReservation ? (
             <ActivityIndicator size="large" color={COLORS.primary} />
         ) : (
-            <>
-              {reservationData.length === 0 || reservationData.every(r => r.status === "cancelled") ? (null
-              ) : (
-                  <CustomButton
-                      title={"Detalle de reserva"}
-                      onPress={handleReservationDetail}
-                      color={COLORS.primary}
-                  />
+            <View style={{ marginTop: 24 }}>
+              {reservationData.length === 0 || reservationData.every(r => r.status === "cancelled") ? null : (
+                  <View style={{ marginBottom: 16 }}>
+                    <CustomButton
+                        title={"Detalle de reserva"}
+                        onPress={handleReservationDetail}
+                        color={COLORS.primary}
+                    />
+                  </View>
               )}
 
-              {/* Opción para Detalle de cancelación */}
-              {reservationData.some(r => r.status === "cancelled") && (
-                  <CustomButton
-                      title={"Detalle de cancelación de reserva"}
-                      onPress={handleReservationDetail} // Podrías pasarle info específica si querés
-                      color={"red"}
-                  />
+              {reservationData.some(r => r.status === "cancelled") && isOwner && (
+                  <View style={{ marginBottom: 24 }}>
+                    <CustomButton
+                        title={"Detalle de cancelación de reserva"}
+                        onPress={handleReservationDetail}
+                        color={"red"}
+                    />
+                  </View>
               )}
-            </>
-        )}
-        {renderEventButton()}
-
+              {renderEventButton()}
+            </View>
+            )}
       </View>
     </View>
   );

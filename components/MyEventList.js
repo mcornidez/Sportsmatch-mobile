@@ -118,8 +118,28 @@ const MyEventList = ({ data, refetchEvent }) => {
             ) : (
                 <Text style={{ fontSize: 24, fontWeight: "600" }}>{sport}</Text>
             )}
-            <EventStatus status={data.item.eventStatus} />
+            <View style={{ alignItems: 'flex-end' }}>
+                <EventStatus status={data.item.eventStatus} />
+                {data.item.hasReservation && (
+                    <View
+                        style={{
+                            backgroundColor: COLORS.primary,
+                            paddingHorizontal: 8,
+                            paddingVertical: 2,
+                            borderRadius: 12,
+                            alignSelf: "flex-end",
+                            marginBottom: 4,
+                            marginTop: 4,
+                        }}
+                    >
+                        <Text style={{ color: COLORS.white, fontWeight: "bold", fontSize: 12 }}>
+                            Con reserva
+                        </Text>
+                    </View>
+                )}
+            </View>
         </View>
+
         <View
           style={{
             flexDirection: "row",

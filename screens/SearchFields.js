@@ -64,7 +64,12 @@ const SearchFields = () => {
 
             for (const field of filteredFields) {
                 const slots = await getAvailableTimeslots(field.id, date);
-                const validSlots = slots.filter(s => s.slotStatus === "available");
+
+                const validSlots = slots.filter(s => {
+                    const slotDateTime = DateTime.fromFormat(`${s.availability_date} ${s.start_time}`, "yyyy-MM-dd HH:mm:ss");
+                    const now = DateTime.utc();
+                    return s.slotStatus === "available" && slotDateTime > now;
+                });
 
                 validSlots.forEach(slot => {
                     const startTime = DateTime.fromFormat(slot.start_time, "HH:mm:ss");

@@ -13,9 +13,10 @@ import { NoContentMessage } from "../components/NoContentMessage";
 import { UserContext } from "../contexts/UserContext";
 import { StatusBar } from "expo-status-bar";
 import {DateTime} from "luxon";
+import {fetchReservationsByEvent} from "../services/reservationService";
 
 const renderList = (data, refetchEvent) => {
-  return <MyEventList data={data} refetchEvent={refetchEvent} />;
+  return <MyEventList data={data} refetchEvent={refetchEvent} hasReservation={data.item.hasReservation}/>;
 };
 
 const renderJoinedItem = ({ item }) => {
@@ -89,7 +90,17 @@ const MyEvents = () => {
       setLoadingMyEvents(true);
       const data = await fetchMyEvents(currUser.id);
 
-      const sortedEvents = data.items.sort((a, b) => {
+      const eventosConReserva = await Promise.all(
+          data.items.map(async (event) => {
+            const reservations = await fetchReservationsByEvent(event.id);
+            return {
+              ...event,
+              hasReservation: Array.isArray(reservations) && reservations.length > 0,
+            };
+          })
+      );
+
+      const sortedEvents = eventosConReserva.sort((a, b) => {
         const dateA = DateTime.fromISO(a.schedule.replace(" ", "T"));
         const dateB = DateTime.fromISO(b.schedule.replace(" ", "T"));
 
