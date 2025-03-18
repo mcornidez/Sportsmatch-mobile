@@ -210,6 +210,7 @@ export const acceptParticipant = async (eventId, userId) => {
     body: JSON.stringify({ status: true }),
     headers: {
       "Content-Type": "application/json",
+      "x-auth-type": "user",
     },
   });
 };

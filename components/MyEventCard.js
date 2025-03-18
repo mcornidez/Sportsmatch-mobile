@@ -54,10 +54,8 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus, ref
   };
 
   const acceptUser = async () => {
-    console.log("➡️ Intentando aceptar participante:", props.userId);
     try {
       const response = await acceptParticipant(eventId, props.userId);
-      console.log("✅ Participante aceptado en la API:", response);
       setUserAccepted(true);
       await refetchEvent(eventId);
     } catch (error) {
