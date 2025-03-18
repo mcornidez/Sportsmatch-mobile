@@ -98,7 +98,7 @@ const SearchFields = () => {
                 const slotEndTime = DateTime.fromFormat(slot.slotEnd, "HH:mm:ss");
                 const userDateTime = DateTime.fromFormat(time, "HH:mm");
 
-                const diff = userDateTime.diff(slotStartTime, "minutes").minutes;
+                const diff = Math.abs(userDateTime.diff(slotStartTime, "minutes").minutes);
 
                 // Aceptamos si userTime está máximo 1 slotDuration (casi 2) después del slotStart
                 return diff >= 0 && diff <= (slot.slotDuration*2-1);
