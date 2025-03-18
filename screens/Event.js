@@ -19,7 +19,7 @@ import { Avatar, Divider } from "@rneui/themed";
 import { COLORS } from "../constants";
 import { useNavigation } from "@react-navigation/native";
 import { MONTHS } from "../constants/data";
-import { getDateComponents } from "../utils/datetime";
+import {formatDate, formatTime, getDateComponents} from "../utils/datetime";
 import DefaultProfile from "../assets/default-profile.png";
 import { UserContext } from "../contexts/UserContext";
 import { fetchUserImage } from "../services/userService";
@@ -48,14 +48,14 @@ const Event = ({ route }) => {
     const fetchReservation = async () => {
       try {
         const reservations = await fetchReservationsByEvent(eventId);
-        if (Array.isArray(reservations) && reservations.length > 0) {
-          setReservationData(reservations[0]);
+        if (Array.isArray(reservations)) {
+          setReservationData(reservations);
         } else {
-          setReservationData(null);
+          setReservationData([]);
         }
       } catch (error) {
         console.error("❌ Error obteniendo la reserva:", error);
-        setReservationData(null);
+        setReservationData([]);
       } finally {
         setLoadingReservation(false);
       }
@@ -63,8 +63,6 @@ const Event = ({ route }) => {
 
     fetchReservation();
   }, [eventId]);
-
-
 
   useEffect(() => {
     setLoading(true);
@@ -174,7 +172,6 @@ const Event = ({ route }) => {
   };
 
   const renderEventButton = (loading) => {
-
     if (loadingReservation || !eventData || !currUser) {
       return null;
     }
@@ -184,11 +181,18 @@ const Event = ({ route }) => {
     }
 
     const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
-    const isReservationCancelled = reservationData?.status === "cancelled";
+
+    const allCancelled = Array.isArray(reservationData) && reservationData.every(r => r.status === "cancelled");
+
+    const hasNoReservations = !reservationData || reservationData.length === 0;
+
+    const luxonDate = DateTime.fromFormat(eventData.schedule, "yyyy-MM-dd HH:mm:ssZZ", { zone: "utc" });
+    const jsDate = luxonDate.toJSDate();
+    jsDate.setHours(jsDate.getHours() + 3);
 
     return (
         <>
-          {isOwner && (!reservationData || isReservationCancelled) && (
+          {isOwner && (hasNoReservations || allCancelled) && (
               <CustomButton
                   title={"Buscar Cancha"}
                   onPress={() =>
@@ -196,8 +200,8 @@ const Event = ({ route }) => {
                         eventId: eventId,
                         sportId: eventData.sportId,
                         location: eventData.location,
-                        date: formattedDate,
-                        time: formattedTime,
+                        date: formatDate(jsDate),
+                        time: formatTime(jsDate),
                         duration: eventData.duration,
                         origin: "Event"
                       })
@@ -222,7 +226,6 @@ const Event = ({ route }) => {
                   />
               )
           )}
-
         </>
     );
   };
@@ -243,8 +246,6 @@ const Event = ({ route }) => {
 
     navigation.navigate("ReservationDetail", { eventId, isOwner, eventDate, eventDuration });
   };
-
-  {renderEventButton()}
 
   return loading || !eventData ? (
     <ActivityIndicator
@@ -330,12 +331,27 @@ const Event = ({ route }) => {
             <ActivityIndicator size="large" color={COLORS.primary} />
         ) : (
             <>
-              {eventData && renderEventButton()}
-              {reservationData && (
-                  <CustomButton title={"Detalle de reserva"} onPress={handleReservationDetail} color={COLORS.primary} />
+              {reservationData.length === 0 || reservationData.every(r => r.status === "cancelled") ? (null
+              ) : (
+                  <CustomButton
+                      title={"Detalle de reserva"}
+                      onPress={handleReservationDetail}
+                      color={COLORS.primary}
+                  />
+              )}
+
+              {/* Opción para Detalle de cancelación */}
+              {reservationData.some(r => r.status === "cancelled") && (
+                  <CustomButton
+                      title={"Detalle de cancelación de reserva"}
+                      onPress={handleReservationDetail} // Podrías pasarle info específica si querés
+                      color={"red"}
+                  />
               )}
             </>
         )}
+        {renderEventButton()}
+
       </View>
     </View>
   );

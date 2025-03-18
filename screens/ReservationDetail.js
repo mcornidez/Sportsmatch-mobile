@@ -36,7 +36,13 @@ const ReservationDetail = () => {
             try {
                 const reservations = await fetchReservationsByEvent(eventId);
                 if (Array.isArray(reservations) && reservations.length > 0) {
-                    setReservationData(reservations[0]);
+                    const cancelledReservation = reservations.find(r => r.status === "cancelled");
+                    if (cancelledReservation) {
+                        setReservationData({ ...cancelledReservation, isCancelled: true });
+                    } else {
+                        // Asumimos que si no hay canceladas, tomamos la primera activa
+                        setReservationData({ ...reservations[0], isCancelled: false });
+                    }
                 } else {
                     setReservationData(null);
                 }
@@ -159,10 +165,16 @@ const ReservationDetail = () => {
         duration = endTime.diff(startTime, "minutes").minutes;
         formattedDate = DateTime.fromISO(timeSlots[0].date).toFormat("dd/MM/yyyy");
         formattedStartTime = startTime.toFormat("HH:mm");
-    } 
+    }
     else if (parsedEventDate) {
-        formattedDate = parsedEventDate.toFormat("dd/MM/yyyy");
-        formattedStartTime = parsedEventDate.toFormat("HH:mm");
+        let eventAdjusted = parsedEventDate;
+
+        if (reservationData?.status === "cancelled") {
+            eventAdjusted = parsedEventDate.plus({ hours: 3 });
+        }
+
+        formattedDate = eventAdjusted.toFormat("dd/MM/yyyy");
+        formattedStartTime = eventAdjusted.toFormat("HH:mm");
         duration = eventDuration || 0;
     }
     else {
@@ -219,52 +231,62 @@ const ReservationDetail = () => {
                 {isOwner && (
                     <>
                         <Text style={styles.statusLabel}>Estado del pago de la seña:</Text>
-                        <Text style={[
-                            styles.statusValue,
-                            isPaid ? styles.approved : styles.pending
-                        ]}>
-                            {isPaid ? "Aprobado" : "Pendiente"}
-                        </Text>
+                        {payment.isRefunded ? (
+                            <>
+                                <Text style={[styles.statusValue, { color: "red" }]}>Reembolsado</Text>
+                                <Text style={styles.detailText}>Monto reembolsado: ${Number(payment.refundAmount).toFixed(2)}</Text>
+                                <Text style={styles.detailText}>Fecha: {DateTime.fromISO(payment.refundDate).toFormat('dd/MM/yyyy HH:mm')}</Text>
+                            </>
+                        ) : (
+                            <>
+                                <Text style={[
+                                    styles.statusValue,
+                                    isPaid ? styles.approved : styles.pending
+                                ]}>
+                                    {isPaid ? "Aprobado" : "Pendiente"}
+                                </Text>
 
-                        <View style={styles.buttonContainer}>
-                            {!isPaid && status === "confirmed" && (
-                                <>
-                                    <Text style={styles.noteText}>
-                                        Recordá que tenés hasta 24hs antes de la reserva para pagar la seña.
-                                        Caso contrario, el club puede cancelar la reserva.
-                                    </Text>
-                                    <CustomButton
-                                        title={`Pagar seña ($${(cost / 2).toFixed(0)})`}
-                                        onPress={handlePayment}
-                                        color={COLORS.primary}
-                                        style={styles.actionButton}
-                                    />
-                                </>
-                            )}
+                                <View style={styles.buttonContainer}>
+                                    {!isPaid && status === "confirmed" && (
+                                        <>
+                                            <Text style={styles.noteText}>
+                                                Recordá que tenés hasta 24hs antes de la reserva para pagar la seña.
+                                                Caso contrario, el club puede cancelar la reserva.
+                                            </Text>
+                                            <CustomButton
+                                                title={`Pagar seña ($${(cost / 2).toFixed(2)})`}
+                                                onPress={handlePayment}
+                                                color={COLORS.primary}
+                                                style={styles.actionButton}
+                                            />
+                                        </>
+                                    )}
 
-                            {isPaid && (
-                                <CustomButton
-                                    title="Detalle del pago"
-                                    onPress={handlePayment}
-                                    color={COLORS.primary}
-                                    style={styles.actionButton}
-                                />
-                            )}
+                                    {isPaid && (
+                                        <CustomButton
+                                            title="Detalle del pago"
+                                            onPress={handlePayment}
+                                            color={COLORS.primary}
+                                            style={styles.actionButton}
+                                        />
+                                    )}
 
-                            {status !== "cancelled" && (
-                                <>
-                                    <CustomButton
-                                        title={"Cancelar reserva"}
-                                        onPress={handleCancelReservation}
-                                        color={"red"}
-                                        style={styles.cancelButton}
-                                    />
-                                    <Text style={styles.noteText}>
-                                        Recordá que si cancelas con 24hs de anticipación, se te devolverá la seña.
-                                    </Text>
-                                </>
-                            )}
-                        </View>
+                                    {status !== "cancelled" && (
+                                        <>
+                                            <CustomButton
+                                                title={"Cancelar reserva"}
+                                                onPress={handleCancelReservation}
+                                                color={"red"}
+                                                style={styles.cancelButton}
+                                            />
+                                            <Text style={styles.noteText}>
+                                                Recordá que si cancelas con 24hs de anticipación, se te devolverá la seña.
+                                            </Text>
+                                        </>
+                                    )}
+                                </View>
+                            </>
+                        )}
                     </>
                 )}
             </View>

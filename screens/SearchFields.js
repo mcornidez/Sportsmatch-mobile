@@ -130,7 +130,7 @@ const SearchFields = () => {
                     }
                     navigation.navigate("Nuevo Evento", { returnedFromSearchFields: true });
                 } else {
-                    navigation.navigate("Evento-MisEventos", { eventId });
+                    navigation.navigate("Event", { eventId, ownerId: null });
                 }
             };
 

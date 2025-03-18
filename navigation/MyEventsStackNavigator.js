@@ -3,6 +3,7 @@ import { Event, MyEvents, NewPayment } from "../screens";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ReservationDetail from "../screens/ReservationDetail";
 import PaymentDetail from "../screens/PaymentDetail";
+import React from "react";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +18,7 @@ export const MyEventsStackNavigator = () => {
                 <Stack.Screen name="NewPayment" options={{title: "Pagar reserva"}} component={NewPayment} />
                 <Stack.Screen name="ReservationDetail" options={{title: "Detalle de reserva"}} component={ReservationDetail} />
                 <Stack.Screen name="PaymentDetail" options={{title: "Detalle de pago"}} component={PaymentDetail} />
+                <Stack.Screen name="Evento" component={Event} />
             </Stack.Group>
         </Stack.Navigator>
     );
