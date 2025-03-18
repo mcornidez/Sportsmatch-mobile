@@ -160,6 +160,7 @@ const SearchFields = () => {
                     clubLocation: item.clubLocation,
                     clubAddress: item.clubAddress,
                     fieldName: item.name,
+                    fieldDescription: item.description,
                     date,
                     slotStart: item.slotStart,
                     slotDuration: item.slotDuration,
@@ -173,7 +174,9 @@ const SearchFields = () => {
             <View style={styles.section}>
                 <View style={styles.infoContainer}>
                     <Text style={styles.clubName}>{item.clubName}</Text>
-                    <Text style={styles.fieldName}>{item.name}</Text>
+                    <Text style={styles.fieldName}>
+                        {item.description ? `${item.name} - ${item.description}` : item.name}
+                    </Text>
                     <Text style={styles.details}>
                         Capacidad: {item.capacity} jugadores
                     </Text>

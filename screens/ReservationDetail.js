@@ -198,18 +198,18 @@ const ReservationDetail = () => {
                 <Text style={styles.detailLabel}>Cancha:</Text>
                 <Text style={styles.detailValue}>{field?.name || "No disponible"}</Text>
 
-                <Text style={styles.detailLabel}>Fecha y hora:</Text>
-                <Text style={styles.detailValue}>{formattedDate} a las {formattedStartTime}</Text>
-
-                <Text style={styles.detailLabel}>Duración:</Text>
-                <Text style={styles.detailValue}>{duration} min</Text>
-
                 {field?.description && (
                     <>
                         <Text style={styles.detailLabel}>Descripción:</Text>
                         <Text style={styles.detailValue}>{field.description}</Text>
                     </>
                 )}
+
+                <Text style={styles.detailLabel}>Fecha y hora:</Text>
+                <Text style={styles.detailValue}>{formattedDate} a las {formattedStartTime}</Text>
+
+                <Text style={styles.detailLabel}>Duración:</Text>
+                <Text style={styles.detailValue}>{duration} min</Text>
 
                 <Text style={styles.detailLabel}>Costo:</Text>
                 <Text style={styles.detailValue}>${cost || "No disponible"}</Text>
