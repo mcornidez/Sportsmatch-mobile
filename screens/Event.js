@@ -238,11 +238,11 @@ const Event = ({route}) => {
 
     const eventDuration = eventData?.duration ? eventData.duration : 0;
 
-    const handleReservationDetail = () => {
+    const handleReservationDetail = (reservationId) => {
         const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
         const isoEventDate = eventDate ? eventDate.toISO() : null;
 
-        navigation.navigate("ReservationDetail", {eventId, isOwner, isoEventDate, eventDuration});
+        navigation.navigate("ReservationDetail", {reservationId, eventId, isOwner, isoEventDate, eventDuration});
     };
 
     if (loading || !eventData) {
@@ -370,7 +370,7 @@ const Event = ({route}) => {
                                 <View style={{marginBottom: 16}}>
                                     <CustomButton
                                         title={"Detalle de reserva"}
-                                        onPress={handleReservationDetail}
+                                        onPress={() => handleReservationDetail(reservationData.find(r => r.status !== 'cancelled')?.id)}
                                         color={COLORS.primary}
                                     />
                                 </View>
@@ -380,7 +380,7 @@ const Event = ({route}) => {
                                 <View style={{marginBottom: 24}}>
                                     <CustomButton
                                         title={"Detalle de cancelación de reserva"}
-                                        onPress={handleReservationDetail}
+                                        onPress={() => handleReservationDetail(reservationData.find(r => r.status === 'cancelled')?.id)}
                                         color={"red"}
                                     />
                                 </View>

@@ -23,7 +23,7 @@ import {UserContext} from "../contexts/UserContext";
 const ReservationDetail = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const {eventId, isOwner, eventDate, eventDuration} = route.params;
+    const {reservationId, eventId, isOwner, eventDate, eventDuration} = route.params;
     const [reservationData, setReservationData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [clubAddress, setClubAddress] = useState(null);
@@ -36,13 +36,12 @@ const ReservationDetail = () => {
     const fetchReservation = async () => {
         try {
             const reservations = await fetchReservationsByEvent(eventId);
-            if (Array.isArray(reservations) && reservations.length > 0) {
-                const cancelledReservation = reservations.find(r => r.status === "cancelled");
-                if (cancelledReservation) {
-                    setReservationData({...cancelledReservation, isCancelled: true});
+            if (Array.isArray(reservations)) {
+                const specificReservation = reservations.find(r => r.id.toString() === reservationId.toString());
+                if (specificReservation) {
+                    setReservationData(specificReservation);
                 } else {
-                    // Asumimos que si no hay canceladas, tomamos la primera activa
-                    setReservationData({...reservations[0], isCancelled: false});
+                    setReservationData(null);
                 }
             } else {
                 setReservationData(null);
@@ -55,11 +54,9 @@ const ReservationDetail = () => {
         }
     };
 
-    useFocusEffect(
-        React.useCallback(() => {
-            fetchReservation();
-        }, [eventId])
-    );
+    useEffect(() => {
+        fetchReservation();
+    }, []);
 
     const fetchClubAddress = async () => {
         if (reservationData?.field?.clubId) {
@@ -311,7 +308,7 @@ const ReservationDetail = () => {
                                                 style={styles.cancelButton}
                                             />
                                             <Text style={styles.noteText}>
-                                                Recordá que si cancelas con 24hs de anticipación, se te devolverá la
+                                                Recordá que si cancelás con 24hs de anticipación, se te devolverá la
                                                 seña.
                                             </Text>
                                         </>
