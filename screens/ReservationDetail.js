@@ -184,7 +184,12 @@ const ReservationDetail = () => {
     }
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={{
+            padding: 40,
+            paddingTop: 20,
+            backgroundColor: COLORS.primary10,
+            minHeight: "100%",
+        }}>
             <Text style={styles.clubName}>{field?.clubName || "Cancha no disponible"}</Text>
 
             <View style={styles.detailsContainer}>
@@ -309,7 +314,6 @@ export default ReservationDetail;
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         backgroundColor: COLORS.primary10,
         padding: 40,
         alignItems: "center",

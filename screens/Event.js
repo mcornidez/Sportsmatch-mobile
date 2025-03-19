@@ -31,13 +31,12 @@ import { getSports } from "../services/sportService";
 const DEFAULT_PROFILE_URL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars/default-profile.png";
 
 const Event = ({ route }) => {
-  const {eventId, userImgURL, ownerRating, ownerId} = route.params;
+  const {eventId, ownerRating, ownerId} = route.params;
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [eventParticipants, setEventParticipants] = useState(null);
   const [userStatus, setUserStatus] = useState(USER_STATUS.UNENROLLED);
   const [sports, setSports] = useState([]);
-  const [imageUrl, setimageUrl] = useState(userImgURL);
   const {currUser} = useContext(UserContext);
   const [eventData, setEventData] = useState(null);
   const [reservationData, setReservationData] = useState(null);
@@ -71,21 +70,7 @@ const Event = ({ route }) => {
       setEventData(data);
     });
 
-    if (!route.params.userImgURL) {
-      const fetchImage = async () => {
-        const response = await fetchUserImage(ownerId);
-        if (response.status == 200) {
-          setimageUrl(response.imageUrl);
-        }
-        setLoading(false);
-      };
-      try {
-        fetchImage();
-      } catch (err) {
-        console.error("ERROR fetching user data", err);
-      }
-    }
-  }, [eventId, userImgURL, ownerId]);
+  }, [eventId, ownerId]);
 
   useEffect(() => {
     if (eventData)
@@ -264,13 +249,12 @@ const Event = ({ route }) => {
         <Avatar
             rounded
             size={110}
-            source={
-              eventData.owner?.imageUrl
-                  ? { uri: eventData.owner.imageUrl }
-                  : userImgURL
-                      ? { uri: userImgURL }
-                      : DEFAULT_PROFILE_URL
-            }
+            source={{
+              uri:
+                  eventData.owner?.imageUrl && eventData.owner.imageUrl.trim() !== ""
+                      ? eventData.owner.imageUrl
+                      : DEFAULT_PROFILE_URL,
+            }}
             containerStyle={styles.avatar}
         />
         <View style={styles.headerData}>
@@ -438,7 +422,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     marginRight: 10,
     marginBottom: 5,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.lightGray,
   },
 
   eventBody: {
