@@ -10,18 +10,19 @@ import {
 import { COLORS } from "../constants";
 import { Avatar, Chip, Divider } from "@rneui/themed";
 import { Ionicons } from "@expo/vector-icons";
-import DefaultProfile from "../assets/default-profile.png";
 import { NoContentMessage } from "../components/NoContentMessage";
 import { UserContext } from "../contexts/UserContext";
 import { useFocusEffect } from "@react-navigation/native";
 import {fetchUserProfile} from "../services/userService";
 import { getSports } from "../services/sportService";
 
+const DEFAULT_PROFILE_URL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars/default-profile.png";
+
 
 const Profile = () => {
   const { currUser, setCurrUser } = useContext(UserContext);
   const [imageUrl, setImageUrl] = useState(
-      currUser?.imageUrl || DefaultProfile
+      currUser?.imageUrl || DEFAULT_PROFILE_URL
   );
   const [sportsData, setSportsData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,9 +78,9 @@ const Profile = () => {
             <Avatar
                 size={108}
                 rounded
-                source={imageUrl ? { uri: imageUrl } : DefaultProfile}
-                containerStyle={{ backgroundColor: COLORS.secondary }}
-                onError={() => setImageUrl(DefaultProfile)}
+                source={imageUrl ? { uri: imageUrl } : DEFAULT_PROFILE_URL}
+                containerStyle={{ backgroundColor: COLORS.lightGray }}
+                onError={() => setImageUrl(DEFAULT_PROFILE_URL)}
             />
             <View style={styles.profileTextContainer}>
               <Text style={styles.profileTextName}>

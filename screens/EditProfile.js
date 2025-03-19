@@ -22,7 +22,6 @@ import Pill from "../components/Pill";
 import {LOCATIONS} from "../constants/data";
 import {updateUser, updateUserImage} from "../services/userService";
 import * as ImagePicker from "expo-image-picker";
-import DefaultProfile from "../assets/default-profile.png";
 import {Avatar} from "@rneui/themed";
 import {Ionicons} from "@expo/vector-icons";
 import {useActionSheet} from "@expo/react-native-action-sheet";
@@ -30,6 +29,7 @@ import PhoneInput from "react-native-phone-number-input";
 import {PhoneNumberUtil} from "google-libphonenumber";
 import {UserContext} from "../contexts/UserContext";
 import {CustomMultiDropdown} from "../components/CustomMultiDropdown";
+const DEFAULT_PROFILE_URL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars/default-profile.png";
 
 const EditProfile = () => {
     const navigator = useNavigation();
@@ -318,8 +318,8 @@ const EditProfile = () => {
                                     <Avatar
                                         size={130}
                                         rounded
-                                        source={selectedAvatar ? { uri: selectedAvatar } : DefaultProfile}
-                                        containerStyle={{ backgroundColor: COLORS.primary }}
+                                        source={selectedAvatar ? { uri: selectedAvatar } : DEFAULT_PROFILE_URL}
+                                        containerStyle={{ backgroundColor: COLORS.lightGray }}
                                     />
                                     <TouchableOpacity
                                         onPress={() => setShowAvatarSelector(true)}

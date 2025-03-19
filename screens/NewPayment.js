@@ -4,7 +4,6 @@ import { WebView } from 'react-native-webview';
 import { COLORS } from '../constants';
 import { useNavigation } from '@react-navigation/native';
 import { API_URL } from '@env';
-import {MyEvents} from "./index";
 
 const NewPayment = ({route}) => {
     const navigation = useNavigation();

@@ -15,9 +15,9 @@ import {
 import { AirbnbRating, Avatar, Button } from "@rneui/base";
 import { COLORS } from "../constants";
 import { EVENT_STATUS } from "../constants/data";
-import DefaultProfile from "../assets/default-profile.png";
 import { fetchUserImage } from "../services/userService";
 import CustomButton from "./CustomButton";
+const DEFAULT_PROFILE_URL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars/default-profile.png";
 
 const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus, refetchEvent }) => {
   const [userAccepted, setUserAccepted] = useState(props.participantStatus);
@@ -120,8 +120,8 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus, ref
         <Avatar
             rounded
             size={72}
-            source={props.imageUrl ? { uri: props.imageUrl } : DefaultProfile}
-            containerStyle={{ backgroundColor: COLORS.secondary }}
+            source={props.imageUrl ? { uri: props.imageUrl } : DEFAULT_PROFILE_URL}
+            containerStyle={{ backgroundColor: COLORS.lightGray }}
         />
         <View style={styles.textContainer}>
           <Text style={styles.userText}>{props.firstname}</Text>

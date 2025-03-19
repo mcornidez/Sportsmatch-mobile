@@ -15,11 +15,11 @@ import {DateTime, Settings} from "luxon";
 import {getDateComponents} from "../utils/datetime";
 import {AirbnbRating} from "@rneui/base";
 import {rateUser} from "../services/eventService";
-import DefaultProfile from "../assets/default-profile.png";
 import {fetchUserImage} from "../services/userService";
 import CustomButton from "./CustomButton";
 import {Spots} from "./Spots";
 import {getSports} from "../services/sportService";
+const DEFAULT_PROFILE_URL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars/default-profile.png";
 
 const Card = ({props}) => {
     const navigation = useNavigation();
@@ -159,7 +159,7 @@ const Card = ({props}) => {
                         <Avatar
                             rounded
                             size={100}
-                            source={props.owner.imageUrl ? { uri: props.owner.imageUrl } : DefaultProfile}
+                            source={{ uri: props.owner.imageUrl || DEFAULT_PROFILE_URL }}
                             containerStyle={styles.avatar}
                         />
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 6}}>
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         marginRight: 10,
         marginBottom: 5,
-        backgroundColor: COLORS.primary,
+        backgroundColor: COLORS.lightGray,
     },
 
     cardBigText: {

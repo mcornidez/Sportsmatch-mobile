@@ -20,7 +20,6 @@ import { COLORS } from "../constants";
 import { useNavigation } from "@react-navigation/native";
 import { MONTHS } from "../constants/data";
 import {formatDate, formatTime, getDateComponents} from "../utils/datetime";
-import DefaultProfile from "../assets/default-profile.png";
 import { UserContext } from "../contexts/UserContext";
 import { fetchUserImage } from "../services/userService";
 import { fetchReservationsByEvent } from "../services/reservationService";
@@ -28,6 +27,8 @@ import {DateTime} from "luxon";
 import {AuthContext} from "../contexts/authContext";
 import * as SecureStore from "expo-secure-store";
 import { getSports } from "../services/sportService";
+
+const DEFAULT_PROFILE_URL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars/default-profile.png";
 
 const Event = ({ route }) => {
   const {eventId, userImgURL, ownerRating, ownerId} = route.params;
@@ -255,6 +256,7 @@ const Event = ({ route }) => {
     );
   }
 
+  const isClub = eventData.organizerType === "club";
   const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
   return (
     <View style={styles.eventContainer}>
@@ -267,7 +269,7 @@ const Event = ({ route }) => {
                   ? { uri: eventData.owner.imageUrl }
                   : userImgURL
                       ? { uri: userImgURL }
-                      : DefaultProfile
+                      : DEFAULT_PROFILE_URL
             }
             containerStyle={styles.avatar}
         />
@@ -312,8 +314,8 @@ const Event = ({ route }) => {
           </Text>
         </View>
 
-        {/* Si hay reserva activa y clubAddress */}
-        {reservationData && reservationData.some(r => r.status === "confirmed" || r.status === "pending" || r.status === "completed") && (
+        {/* Dirección para clubes o cuando hay reservas */}
+        {(isClub || (reservationData && reservationData.some(r => r.status !== "cancelled"))) && (
             <>
               <Divider width={1} />
               <View style={styles.bodySection}>
@@ -323,11 +325,12 @@ const Event = ({ route }) => {
                     numberOfLines={2}
                     ellipsizeMode="tail"
                 >
-                  {reservationData[0]?.field.address || "Dirección no disponible"}
+                  {reservationData?.[0]?.field?.address || eventData.owner.address || "Dirección no disponible"}
                 </Text>
               </View>
             </>
         )}
+
 
         <Divider width={1} />
         {eventData.description && eventData.description.trim() !== "" && (

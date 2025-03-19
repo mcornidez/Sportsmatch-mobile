@@ -3,6 +3,7 @@ import { Linking, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar, Button } from "@rneui/base";
 import { COLORS } from "../constants";
+const DEFAULT_PROFILE_URL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars/default-profile.png";
 
 
 const ParticipantCard = ({ userData }) => {
@@ -12,8 +13,8 @@ const ParticipantCard = ({ userData }) => {
                 <Avatar
                     rounded
                     size={60}
-                    source={userData.imageUrl ? { uri: userData.imageUrl } : DefaultProfile}
-                    containerStyle={{ backgroundColor: COLORS.secondary }}
+                    source={userData.imageUrl ? { uri: userData.imageUrl } : DEFAULT_PROFILE_URL}
+                    containerStyle={{ backgroundColor: COLORS.lightGray }}
                 />
             </View>
             <View style={styles.textContainer}>

@@ -118,7 +118,7 @@ const FilterModal = ({ navigation }) => {
                 <Text style={[styles.bigText, { alignSelf: 'center' }]}>
                     Filtros de búsqueda
                 </Text>
-                <View style={{flex: 1,flexDirection: 'column', gap: 30, justifyContent: 'center'}}>
+                <View style={{flex: 1,flexDirection: 'column', gap: 15, justifyContent: 'center'}}>
                         <View>
                             <Text style={styles.sectionTitle}>Ubicación: </Text>
                             <Controller control={control} rules={{ required: false }} render={({ field }) => {
@@ -206,8 +206,8 @@ const FilterModal = ({ navigation }) => {
 
                             </View>
 
-                            <View>
-                                <Text style={styles.sectionTitle}>Sólo eventos organizados por clubes:</Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10}}>
+                                <Text style={styles.sectionTitle}>Mostrar sólo clubes:</Text>
                                 <Controller
                                     control={control}
                                     name="onlyClubs"
