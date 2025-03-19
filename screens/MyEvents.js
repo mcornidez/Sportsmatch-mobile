@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from "react";
-import { SafeAreaView, FlatList, View, StyleSheet, ActivityIndicator } from "react-native";
+import { SafeAreaView, FlatList, View, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { TabView, TabBar } from "react-native-tab-view";
 import Card from "../components/Card";
 import {
@@ -23,12 +23,19 @@ const renderJoinedItem = ({ item }) => {
   return <Card props={item} />;
 };
 
-const FirstRoute = (myEvents, loading, refetchEvent) => (
+const FirstRoute = (myEvents, loading, refetchEvent, refreshing, onRefresh) => (
   <SafeAreaView style={{ flex: 1 }}>
     {loading ? <ActivityIndicator size="large" color={COLORS.primary} style={{ alignSelf: "center", marginTop: "50%" }} /> :
       <FlatList
         data={myEvents.slice().reverse()}
         renderItem={(data) => renderList(data, refetchEvent)}
+        refreshControl={
+          <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+          />
+        }
         style={{ flex: 1, marginBottom: 8 }}
         contentContainerStyle={myEvents.length != 0 ? { flexGrow: 1 } : styles.noContentContainer}
         keyExtractor={(item, index) => {
@@ -39,12 +46,19 @@ const FirstRoute = (myEvents, loading, refetchEvent) => (
   </SafeAreaView>
 );
 
-const SecondRoute = (joinedEvents, loading) => (
+const SecondRoute = (joinedEvents, loading, refreshing, onRefresh) => (
   <SafeAreaView style={{ flex: 1 }}>
     {loading ? <ActivityIndicator size="large" color={COLORS.primary} style={{ alignSelf: "center", marginTop: "50%" }} /> :
       <FlatList
         data={joinedEvents.slice().reverse()}
         renderItem={renderJoinedItem}
+        refreshControl={
+          <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+          />
+        }
         style={{ flex: 1 }}
         contentContainerStyle={
           joinedEvents.length != 0 ? styles.contentContainer : styles.noContentContainer}
@@ -73,59 +87,74 @@ const MyEvents = () => {
   const [myEvents, setMyEvents] = React.useState([]);
   const [joinedEvents, setJoinedEvents] = React.useState([]);
   const isFocused = useIsFocused();
+  const [refreshingMyEvents, setRefreshingMyEvents] = React.useState(false);
+  const [refreshingJoinedEvents, setRefreshingJoinedEvents] = React.useState(false);
+
+  const onRefreshMyEvents = async () => {
+    setRefreshingMyEvents(true);
+    await getMyEvents();
+    setRefreshingMyEvents(false);
+  };
+
+  const onRefreshJoinedEvents = async () => {
+    setRefreshingJoinedEvents(true);
+    await getJoinedEvents();
+    setRefreshingJoinedEvents(false);
+  };
 
   const renderScene = ({ route }) => {
     switch (route.key) {
       case "first":
-        return FirstRoute(myEvents, loadingMyEvents, refetchSingleEvent);
+        return FirstRoute(myEvents, loadingMyEvents, refetchSingleEvent, refreshingMyEvents, onRefreshMyEvents);
       case "second":
-        return SecondRoute(joinedEvents, loadingJoinedEvents);
+        return SecondRoute(joinedEvents, loadingJoinedEvents, refreshingJoinedEvents, onRefreshJoinedEvents);
       default:
         return null;
     }
   };
 
+  const getMyEvents = async () => {
+    setLoadingMyEvents(true);
+    const data = await fetchMyEvents(currUser.id);
+
+    const eventosConReserva = await Promise.all(
+        data.items.map(async (event) => {
+          const reservations = await fetchReservationsByEvent(event.id);
+          return {
+            ...event,
+            hasReservation: Array.isArray(reservations) && reservations.length > 0,
+          };
+        })
+    );
+
+    const sortedEvents = eventosConReserva.sort((a, b) => {
+      const dateA = DateTime.fromISO(a.schedule.replace(" ", "T"));
+      const dateB = DateTime.fromISO(b.schedule.replace(" ", "T"));
+
+      if (!dateA.isValid) return 1;
+      if (!dateB.isValid) return -1;
+
+      return dateB.toMillis()- dateA.toMillis() ;
+    });
+
+    setMyEvents(sortedEvents);
+    setLoadingMyEvents(false);
+  };
+
   useEffect(() => {
-    const getMyEvents = async () => {
-      setLoadingMyEvents(true);
-      const data = await fetchMyEvents(currUser.id);
-
-      const eventosConReserva = await Promise.all(
-          data.items.map(async (event) => {
-            const reservations = await fetchReservationsByEvent(event.id);
-            return {
-              ...event,
-              hasReservation: Array.isArray(reservations) && reservations.length > 0,
-            };
-          })
-      );
-
-      const sortedEvents = eventosConReserva.sort((a, b) => {
-        const dateA = DateTime.fromISO(a.schedule.replace(" ", "T"));
-        const dateB = DateTime.fromISO(b.schedule.replace(" ", "T"));
-
-        if (!dateA.isValid) return 1;
-        if (!dateB.isValid) return -1;
-
-        return dateB.toMillis()- dateA.toMillis() ;
-      });
-
-      setMyEvents(sortedEvents);
-      setLoadingMyEvents(false);
-    };
-
     if (isFocused) {
       getMyEvents().then(() => setLoadingMyEvents(false)).catch((err) => console.log(err));
     }
   }, [isFocused]);
 
+  const getJoinedEvents = async () => {
+    setLoadingJoinedEvents(true);
+    const mockData = await fetchJoinedEvents(currUser.id);
+    setJoinedEvents(mockData.items);
+    setLoadingJoinedEvents(false);
+  };
+
   useEffect(() => {
-    const getJoinedEvents = async () => {
-      setLoadingJoinedEvents(true);
-      const mockData = await fetchJoinedEvents(currUser.id);
-      setJoinedEvents(mockData.items);
-      setLoadingJoinedEvents(false);
-    };
     if (isFocused) {
       getJoinedEvents().then(() => setLoadingJoinedEvents(false)).catch((err) => console.log(err));
     }

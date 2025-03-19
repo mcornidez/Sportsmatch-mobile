@@ -7,18 +7,18 @@ export const LOCATIONS = [
     'Chacarita',         'Paternal',          'Villa Crespo',
     'Villa Del Parque',  'Almagro',           'Caballito',
     'Villa Santa Rita',  'Monte Castro',      'Villa Real',
-    'Flores',            'Floresta',          'Constitucion',
-    'San Cristobal',     'Boedo',             'Velez Sarsfield',
+    'Flores',            'Floresta',          'Constitución',
+    'San Cristóbal',     'Boedo',             'Vélez Sarsfield',
     'Villa Luro',        'Parque Patricios',  'Mataderos',
     'Villa Lugano',      'San Telmo',         'Saavedra',
     'Coghlan',           'Villa Urquiza',     'Colegiales',
     'Balvanera',         'Villa Gral. Mitre', 'Parque Chas',
-    'Agronomia',         'Villa Ortuzar',     'Barracas',
+    'Agronomía',         'Villa Ortúzar',     'Barracas',
     'Parque Avellaneda', 'Parque Chacabuco',  'Nueva Pompeya',
     'Palermo',           'Villa Riachuelo',   'Villa Soldati',
-    'Villa Pueyrredon',  'Villa Devoto',      'Liniers',
+    'Villa Pueyrredón',  'Villa Devoto',      'Liniers',
     'Versalles',         'Puerto Madero',     'Monserrat',
-    'San Nicolas',       'Belgrano',          'Recoleta',
+    'San Nicolás',       'Belgrano',          'Recoleta',
     'Retiro',            'Núñez',             'La Boca'
   ]  
 export const HORARIOS = ["Mañana", "Tarde", "Noche"]

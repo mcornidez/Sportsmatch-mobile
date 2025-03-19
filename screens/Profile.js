@@ -40,6 +40,7 @@ const Profile = () => {
             setCurrUser(updatedUser);
           } catch (err) {
             console.error("Error loading profile:", err);
+            throw err
           } finally {
             setLoading(false);
           }

@@ -6,6 +6,7 @@ import {
     ScrollView,
     TouchableOpacity,
     ActivityIndicator,
+    RefreshControl,
     Alert
 } from "react-native";
 import {useNavigation, useRoute, useFocusEffect} from "@react-navigation/native";
@@ -28,54 +29,55 @@ const ReservationDetail = () => {
     const [clubAddress, setClubAddress] = useState(null);
     const [loadingAddress, setLoadingAddress] = useState(true);
     const [loadingCancel, setLoadingCancel] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const parsedEventDate = eventDate ? DateTime.fromISO(eventDate) : null;
 
+    const fetchReservation = async () => {
+        try {
+            const reservations = await fetchReservationsByEvent(eventId);
+            if (Array.isArray(reservations) && reservations.length > 0) {
+                const cancelledReservation = reservations.find(r => r.status === "cancelled");
+                if (cancelledReservation) {
+                    setReservationData({...cancelledReservation, isCancelled: true});
+                } else {
+                    // Asumimos que si no hay canceladas, tomamos la primera activa
+                    setReservationData({...reservations[0], isCancelled: false});
+                }
+            } else {
+                setReservationData(null);
+            }
+        } catch (error) {
+            console.error("❌ Error obteniendo la reserva:", error);
+            setReservationData(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useFocusEffect(
         React.useCallback(() => {
-            const fetchReservation = async () => {
-                try {
-                    const reservations = await fetchReservationsByEvent(eventId);
-                    if (Array.isArray(reservations) && reservations.length > 0) {
-                        const cancelledReservation = reservations.find(r => r.status === "cancelled");
-                        if (cancelledReservation) {
-                            setReservationData({...cancelledReservation, isCancelled: true});
-                        } else {
-                            // Asumimos que si no hay canceladas, tomamos la primera activa
-                            setReservationData({...reservations[0], isCancelled: false});
-                        }
-                    } else {
-                        setReservationData(null);
-                    }
-                } catch (error) {
-                    console.error("❌ Error obteniendo la reserva:", error);
-                    setReservationData(null);
-                } finally {
-                    setLoading(false);
-                }
-            };
-
             fetchReservation();
         }, [eventId])
     );
 
-    useEffect(() => {
-        const fetchClubAddress = async () => {
-            if (reservationData?.field?.clubId) {
-                try {
-                    const club = await getClubById(reservationData.field.clubId);
-                    setClubAddress(club.address || "Dirección no disponible");
-                } catch (error) {
-                    console.error("Error obteniendo la dirección del club:", error);
-                    setClubAddress("Error al obtener la dirección.");
-                } finally {
-                    setLoadingAddress(false);
-                }
-            } else {
+    const fetchClubAddress = async () => {
+        if (reservationData?.field?.clubId) {
+            try {
+                const club = await getClubById(reservationData.field.clubId);
+                setClubAddress(club.address || "Dirección no disponible");
+            } catch (error) {
+                console.error("Error obteniendo la dirección del club:", error);
+                setClubAddress("Error al obtener la dirección.");
+            } finally {
                 setLoadingAddress(false);
             }
-        };
+        } else {
+            setLoadingAddress(false);
+        }
+    };
 
+    useEffect(() => {
         if (reservationData) {
             fetchClubAddress();
         }
@@ -92,6 +94,13 @@ const ReservationDetail = () => {
             </View>
         );
     }
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchReservation();
+        await fetchClubAddress();
+        setRefreshing(false);
+    };
 
     const {field, timeSlots, cost, status, payment} = reservationData;
     const isPaid = payment?.isPaid || false;
@@ -184,7 +193,15 @@ const ReservationDetail = () => {
     }
 
     return (
-        <ScrollView contentContainerStyle={{
+        <ScrollView
+            refreshControl={
+                <RefreshControl
+                    tintColor={COLORS.primary}
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                />
+            }
+            contentContainerStyle={{
             padding: 40,
             paddingTop: 20,
             backgroundColor: COLORS.primary10,
@@ -334,6 +351,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: COLORS.primary,
         marginBottom: 10,
+        textAlign: "center"
     },
     detailsContainer: {
         backgroundColor: COLORS.white,

@@ -52,9 +52,10 @@ const FieldReservation = () => {
                     <Text style={styles.detailValue}>{clubAddress}</Text>
 
                     <Text style={styles.detailLabel}>Cancha:</Text>
-                    <Text style={styles.detailValue}>
-                        {fieldDescription ? `${fieldName} - ${fieldDescription}` : fieldName}
-                    </Text>
+                    <Text style={styles.detailValue}>{fieldName}</Text>
+
+                    <Text style={styles.detailLabel}>Descripción:</Text>
+                    <Text style={styles.detailValue}>{description}</Text>
 
                     <Text style={styles.detailLabel}>Fecha:</Text>
                     <Text style={styles.detailValue}>{date}</Text>
@@ -67,9 +68,6 @@ const FieldReservation = () => {
 
                     <Text style={styles.detailLabel}>Capacidad:</Text>
                     <Text style={styles.detailValue}>{capacity} jugadores</Text>
-
-                    <Text style={styles.detailLabel}>Descripción:</Text>
-                    <Text style={styles.detailValue}>{description}</Text>
 
                     <Text style={styles.detailLabel}>Costo:</Text>
                     <Text style={styles.detailValue}>${cost}</Text>

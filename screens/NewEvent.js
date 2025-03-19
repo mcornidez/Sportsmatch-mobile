@@ -167,6 +167,8 @@ const NewEvent = () => {
     return errorMsg;
   };
 
+  const sortedLocations = [...LOCATIONS].sort((a, b) => a.localeCompare(b));
+
   return (
     <ScrollView
       contentContainerStyle={{
@@ -267,7 +269,7 @@ const NewEvent = () => {
               <CustomDropdown
                 selected={field.value}
                 setSelected={field.onChange}
-                data={LOCATIONS}
+                data={sortedLocations}
                 name="Lugar"
                 search={true}
               />

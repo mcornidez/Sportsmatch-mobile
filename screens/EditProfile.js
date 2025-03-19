@@ -318,7 +318,11 @@ const EditProfile = () => {
                                     <Avatar
                                         size={130}
                                         rounded
-                                        source={selectedAvatar ? { uri: selectedAvatar } : DEFAULT_PROFILE_URL}
+                                        source={
+                                            selectedAvatar
+                                                ? { uri: selectedAvatar }
+                                                : { uri: DEFAULT_PROFILE_URL }
+                                        }
                                         containerStyle={{ backgroundColor: COLORS.lightGray }}
                                     />
                                     <TouchableOpacity

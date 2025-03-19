@@ -60,7 +60,7 @@ const PaymentDetail = () => {
                 <Text style={styles.detailLabel}>Valor de la reserva:</Text>
                 <Text style={styles.detailValue}>${reservationValue.toFixed(2)}</Text>
 
-                <Text style={styles.detailLabel}>Valor de la seña:</Text>
+                <Text style={styles.detailLabel}>Valor de la seña (50%):</Text>
                 <Text style={styles.detailValue}>${depositValue.toFixed(2)}</Text>
 
                 <Text style={styles.detailLabel}>Comisión (2.5%):</Text>
