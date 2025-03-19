@@ -7,99 +7,7 @@ import { API_URL } from '@env';
 
 const NewPayment = ({route}) => {
     const navigation = useNavigation();
-    const [webViewContent, setWebViewContent] = useState('');
     const { amount, reservationId, apiKey, eventId, isOwner, eventDate, eventDuration } = route.params;
-
-    useEffect(() => {
-        const htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <script src="https://sdk.mercadopago.com/js/v2"></script>
-            </head>
-            <body style="margin:0;padding:0;background:white;">
-                <div id="cardPaymentBrick_container"></div>
-                <script>
-                    const mp = new MercadoPago('TEST-1f8e0899-68a4-4042-8902-68dedc91dab8', {
-                        locale: 'es-AR'
-                    });
-                    
-                    const bricksBuilder = mp.bricks();
-                    
-                    const renderCardPaymentBrick = async (bricksBuilder) => {
-                        const settings = {
-                            initialization: {
-                                amount: ${amount},
-                                payer: {
-                                    email: "",
-                                },
-                            },
-                            customization: {
-                                visual: {
-                                    style: {
-                                        theme: 'default'
-                                    }
-                                },
-                                paymentMethods: {
-                                    maxInstallments: 1,
-                                }
-                            },
-                            callbacks: {
-                                onReady: () => {
-                                    // Notify React Native that the brick is ready
-                                    window.ReactNativeWebView.postMessage('BRICK_READY');
-                                },
-                                onSubmit: (cardFormData) => {
-                                    return new Promise((resolve, reject) => {
-                                        // Send message to React Native with the form data
-                                        window.ReactNativeWebView.postMessage(JSON.stringify({
-                                            type: 'PAYMENT_SUBMISSION',
-                                            data: cardFormData
-                                        }));
-                                        
-                                        fetch("${API_URL}/payments/${reservationId}/process_payment", {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                                "c-api-key": "${apiKey}"
-                                            },
-                                            body: JSON.stringify(cardFormData)
-                                        })
-                                        .then((response) => response.json())
-                                        .then((response) => {
-                                            window.ReactNativeWebView.postMessage(JSON.stringify({
-                                                type: 'PAYMENT_RESPONSE',
-                                                data: response
-                                            }));
-                                            resolve();
-                                        })
-                                        .catch((error) => {
-                                            window.ReactNativeWebView.postMessage(JSON.stringify({
-                                                type: 'PAYMENT_ERROR',
-                                                error: error.message
-                                            }));
-                                            reject();
-                                        });
-                                    });
-                                },
-                                onError: (error) => {
-                                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                                        type: 'BRICK_ERROR',
-                                        error: error
-                                    }));
-                                },
-                            },
-                        };
-                        window.cardPaymentBrickController = await bricksBuilder.create('cardPayment', 'cardPaymentBrick_container', settings);
-                    };
-                    renderCardPaymentBrick(bricksBuilder);
-                </script>
-            </body>
-            </html>
-        `;
-        setWebViewContent(htmlContent);
-    }, []);
 
     const handleWebViewMessage = (event) => {
         try {
@@ -144,16 +52,18 @@ const NewPayment = ({route}) => {
     return (
         <View style={styles.container}>
             <WebView
-                source={{ html: webViewContent }}
-                style={styles.webview}
+                source={{
+                    uri: `https://payment-brick.vercel.app/?amount=${amount}&reservationId=${reservationId}&apiUrl=${API_URL}&apiKey=${apiKey}`
+                }}
                 onMessage={handleWebViewMessage}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
-                startInLoadingState={true}
-                scalesPageToFit={true}
+                originWhitelist={['*']}
                 mixedContentMode="always"
+                startInLoadingState={true}
                 allowsInlineMediaPlayback={true}
             />
+
         </View>
     );
 };
