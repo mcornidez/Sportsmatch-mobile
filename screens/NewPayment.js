@@ -24,15 +24,15 @@ const NewPayment = ({route}) => {
 
                     if (paymentStatus === "rejected") {
                         Alert.alert("Pago rechazado", "Tu pago fue rechazado. Por favor, intenta nuevamente.", [
-                            { text: "OK", onPress: () => navigation.navigate("ReservationDetail", { eventId, isOwner, eventDate, eventDuration })}
+                            { text: "OK", onPress: () => navigation.navigate("ReservationDetail", {reservationId, eventId, isOwner, eventDate, eventDuration })}
                         ]);
                     } else if (paymentStatus === "approved") {
                         Alert.alert("Pago aprobado", "Tu pago fue aprobado con éxito.", [
-                            { text: "OK", onPress: () => navigation.navigate("ReservationDetail", { eventId, isOwner, eventDate, eventDuration })}
+                            { text: "OK", onPress: () => navigation.navigate("ReservationDetail", {reservationId, eventId, isOwner, eventDate, eventDuration })}
                         ]);
                     } else {
                         Alert.alert("Error en el pago", "Hubo un error procesando tu pago. Inténtalo nuevamente.", [
-                            { text: "OK", onPress: () => navigation.navigate("ReservationDetail", { eventId, isOwner, eventDate, eventDuration })}
+                            { text: "OK", onPress: () => navigation.navigate("ReservationDetail", {reservationId, eventId, isOwner, eventDate, eventDuration })}
                         ]);
                     }
                     break;
@@ -40,7 +40,7 @@ const NewPayment = ({route}) => {
                 case 'BRICK_ERROR':
                     console.error('Error:', message.error);
                     Alert.alert("Error en el pago", "Ocurrió un problema con el procesamiento del pago. Inténtalo nuevamente.", [
-                        { text: "OK", onPress: () => navigation.navigate("ReservationDetail", { eventId, isOwner, eventDate, eventDuration })}
+                        { text: "OK", onPress: () => navigation.navigate("ReservationDetail", {reservationId, eventId, isOwner, eventDate, eventDuration })}
                     ]);
                     break;
             }
