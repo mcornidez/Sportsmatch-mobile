@@ -19,6 +19,7 @@ import {fetchUserImage} from "../services/userService";
 import CustomButton from "./CustomButton";
 import {Spots} from "./Spots";
 import {getSports} from "../services/sportService";
+import {Ionicons} from "@expo/vector-icons";
 const DEFAULT_PROFILE_URL = "https://new-sportsmatch-user-pictures.s3.us-east-1.amazonaws.com/avatars/default-profile.png";
 
 const Card = ({props}) => {
@@ -162,27 +163,26 @@ const Card = ({props}) => {
                             source={{ uri: props.owner.imageUrl || DEFAULT_PROFILE_URL }}
                             containerStyle={styles.avatar}
                         />
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6}}>
-                            <Text
-                                style={styles.cardMidText}
-                                numberOfLines={2}
-                            >
+                        <View style={{ flexDirection: "column", alignItems: "center" }}>
+                            <Text style={styles.cardMidText} numberOfLines={1}>
                                 {formatName(props.owner.firstName)}
                             </Text>
-                            {props.organizerType === "club" && (
-                                <View style={styles.badgeClub}>
-                                    <Text style={styles.badgeText}>Club</Text>
-                                </View>
-                            )}
                         </View>
                     </View>
                     <View style={styles.verticalSection}>
                         <View>
+                            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                             {loadingSports ? (
                                 <ActivityIndicator size="small" color={COLORS.primary}/>
                             ) : (
                                 <Text style={styles.cardBigText}>{sport}</Text>
                             )}
+                            {props.organizerType === "club" && (
+                                <View style={styles.badgeClub}>
+                                    <Text style={styles.badgeText}>Club</Text>
+                                </View>
+                            )}
+                            </View>
                             <Text style={styles.cardExpertise}>
                                 {EXPERTISE[props.expertise - 1]}
                             </Text>
@@ -194,10 +194,10 @@ const Card = ({props}) => {
                                 </Text>
                             ) : (
                                 <View style={{width: '80%'}}>
-                                    <CustomButton
-                                        title="Puntuar"
-                                        onPress={() => setModalVisible(true)}
-                                    />
+                                    <TouchableOpacity onPress={() => setModalVisible(true)} style={{ flexDirection: "row", alignItems: "center", padding: 4, marginRight: 8 }}>
+                                        <Ionicons name="star" size={22} color={COLORS.secondary} />
+                                        <Text style={{ marginLeft: 4, fontSize: 14, color: COLORS.secondary, fontWeight: "600" }}>Puntuar</Text>
+                                    </TouchableOpacity>
                                 </View>
                             )
                         ) : (

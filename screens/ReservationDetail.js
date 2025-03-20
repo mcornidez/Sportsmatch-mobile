@@ -31,7 +31,7 @@ const ReservationDetail = () => {
     const [loadingCancel, setLoadingCancel] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
-    const parsedEventDate = eventDate ? DateTime.fromISO(eventDate) : null;
+    const parsedEventDate = eventDate ? DateTime.fromISO(eventDate).plus({ hours: 3 }) : null;
 
     const fetchReservation = async () => {
         try {
@@ -165,28 +165,20 @@ const ReservationDetail = () => {
         );
     };
 
-    let startTime, endTime, duration, formattedDate, formattedStartTime;
+    let finalDate = null;
+    let finalStartTime = null;
+    let finalDuration = 0;
 
-    if (timeSlots && timeSlots.length > 0) {
-        startTime = DateTime.fromFormat(timeSlots[0].startTime, "HH:mm:ss");
-        endTime = DateTime.fromFormat(timeSlots[0].endTime, "HH:mm:ss");
-        duration = endTime.diff(startTime, "minutes").minutes;
-        formattedDate = DateTime.fromISO(timeSlots[0].date).toFormat("dd/MM/yyyy");
-        formattedStartTime = startTime.toFormat("HH:mm");
-    } else if (parsedEventDate) {
-        let eventAdjusted = parsedEventDate;
-
-        if (reservationData?.status === "cancelled") {
-            eventAdjusted = parsedEventDate.plus({hours: 3});
-        }
-
-        formattedDate = eventAdjusted.toFormat("dd/MM/yyyy");
-        formattedStartTime = eventAdjusted.toFormat("HH:mm");
-        duration = eventDuration || 0;
-    } else {
-        formattedDate = "No disponible";
-        formattedStartTime = "No disponible";
-        duration = 0;
+    if (status === "cancelled" && parsedEventDate) {
+        finalDate = parsedEventDate.toFormat("dd/MM/yyyy");
+        finalStartTime = parsedEventDate.toFormat("HH:mm");
+        finalDuration = eventDuration || 0;
+    } else if (timeSlots && timeSlots.length > 0) {
+        const start = DateTime.fromFormat(timeSlots[0].startTime, "HH:mm:ss");
+        const end = DateTime.fromFormat(timeSlots[0].endTime, "HH:mm:ss");
+        finalDate = DateTime.fromISO(timeSlots[0].date).toFormat("dd/MM/yyyy");
+        finalStartTime = start.toFormat("HH:mm");
+        finalDuration = end.diff(start, "minutes").minutes;
     }
 
     return (
@@ -225,10 +217,10 @@ const ReservationDetail = () => {
                 )}
 
                 <Text style={styles.detailLabel}>Fecha y hora:</Text>
-                <Text style={styles.detailValue}>{formattedDate} a las {formattedStartTime}</Text>
+                <Text style={styles.detailValue}>{finalDate} a las {finalStartTime}</Text>
 
                 <Text style={styles.detailLabel}>Duración:</Text>
-                <Text style={styles.detailValue}>{duration} min</Text>
+                <Text style={styles.detailValue}>{finalDuration} min</Text>
 
                 <Text style={styles.detailLabel}>Costo:</Text>
                 <Text style={styles.detailValue}>${cost || "No disponible"}</Text>

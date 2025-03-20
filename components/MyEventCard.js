@@ -73,15 +73,18 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus, ref
 
   const renderButton = () => {
     if (eventStatus !== EVENT_STATUS.FINALIZED)
-      return <CustomButton
-        title="Contactar"
-        onPress={sendMessage}
-      />
+      return (
+          <TouchableOpacity onPress={sendMessage} style={{ padding: 4, marginRight: 8 }}>
+            <Ionicons name="call" size={26} color="green" />
+          </TouchableOpacity>
+      );
     if (eventStatus === EVENT_STATUS.FINALIZED && !isRated)
-      return <CustomButton
-        title="Puntuar"
-        onPress={() => setModalVisible(true)}
-      />
+      return (
+          <TouchableOpacity onPress={() => setModalVisible(true)} style={{ flexDirection: "row", alignItems: "center", padding: 4, marginRight: 8 }}>
+            <Ionicons name="star" size={22} color={COLORS.secondary} />
+            <Text style={{ marginLeft: 4, fontSize: 14, color: COLORS.secondary, fontWeight: "600" }}>Puntuar</Text>
+          </TouchableOpacity>
+      );
     return <Text style={{fontSize: 18, fontWeight: 600}}>Calificado</Text>
   }
 
@@ -124,7 +127,14 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus, ref
             containerStyle={{ backgroundColor: COLORS.lightGray }}
         />
         <View style={styles.textContainer}>
-          <Text style={styles.userText}>{props.firstname}</Text>
+          <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={styles.userText}
+          >
+            {props.firstname}
+          </Text>
+
           <View
             style={{
             flexDirection: "row",
@@ -143,7 +153,7 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus, ref
           <TouchableOpacity>
             <Ionicons
               name="close"
-              size={40}
+              size={30}
               color="red"
               onPress={() => handleRemoveParticipant(eventId, props.userId)}
             />
@@ -151,7 +161,7 @@ const MyEventCard = ({ props, eventId, handleRemoveParticipant, eventStatus, ref
           <TouchableOpacity>
             <Ionicons
               name="checkmark"
-              size={40}
+              size={30}
               color="green"
               onPress={acceptUser}
             />
@@ -190,7 +200,12 @@ const styles = StyleSheet.create({
   textContainer: {
     flexDirection: "column",
     alignItems: "center",
-    marginHorizontal: 8
+    marginHorizontal: 8,
+    maxWidth: 120,
+  },
+  profileTextAge: {
+    fontSize: 14,
+    color: COLORS.darkgray,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -199,7 +214,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   userText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 600,
   },
   centeredView: {

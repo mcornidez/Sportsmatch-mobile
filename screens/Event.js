@@ -241,8 +241,9 @@ const Event = ({route}) => {
     const handleReservationDetail = (reservationId) => {
         const isOwner = eventData.owner?.id.toString() === currUser.id.toString();
         const isoEventDate = eventDate ? eventDate.toISO() : null;
+        console.log("Iso event date: ", eventDate)
 
-        navigation.navigate("ReservationDetail", {reservationId, eventId, isOwner, isoEventDate, eventDuration});
+        navigation.navigate("ReservationDetail", {reservationId, eventId, isOwner, eventDate: isoEventDate, eventDuration});
     };
 
     if (loading || !eventData) {
