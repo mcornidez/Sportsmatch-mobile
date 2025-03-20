@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     color: COLORS.white,
   },
   profileTextName: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 500,
     color: COLORS.mediumGray,
   },
